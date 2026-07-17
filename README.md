@@ -49,4 +49,4 @@ PostgreSQL + Redis
 - [ ] Presence Tracking
 - [ ] Group Chat
 - [ ] Redis Integration
-- [ ] Kafka Integration
+- [ ] Future consideration: event broker (Kafka only if service extraction, replay, or independent async consumers become necessary)

@@ -1,6 +1,6 @@
 # ADR-0005: Opaque, DB-backed, rotating refresh tokens
 
-**Status:** Accepted | **Date:** 2026-07-09
+**Status:** Accepted | **Date:** 2026-07-17
 
 ## Context
 Short-lived (15 min, NFR-8) JWT access tokens need renewal without forcing

@@ -1,6 +1,6 @@
 # ADR-0001: Monorepo with `apps/api` + `apps/web`
 
-**Status:** Accepted | **Date:** 2026-07-09
+**Status:** Accepted | **Date:** 2026-07-17
 
 ## Context
 One person builds and reviews both frontend and backend; needs one PR to

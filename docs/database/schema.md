@@ -1,7 +1,7 @@
 # Database Schema — Full System Design
 
 Every table below is ⬜ **Planned** — nothing is implemented yet (verified
-2026-07-09). Presence/typing state is intentionally absent — it lives in
+2026-07-17). Presence/typing state is intentionally absent — it lives in
 Redis (ADR-0014), outside the durable store.
 
 ## Entity relationship
@@ -220,7 +220,7 @@ avoids degradation as history grows under concurrent inserts.
 |---|---|---|---|
 | `id` | UUID | PK, generated | |
 | `message_id` | UUID | FK → `messages.id`, not null | one message can have 0..N attachments |
-| `file_url` | text | not null | Supabase Storage URL (signed or public, per ADR-0003's open question) |
+| `object_key` | text | unique, not null | immutable path in the private Supabase Storage bucket; never expose a permanent public URL |
 | `file_name` | varchar(255) | not null | original filename, for display/download |
 | `mime_type` | varchar(100) | not null | used client-side to decide image-preview vs generic file icon |
 | `size_bytes` | bigint | not null | enforced ≤ NFR-5's 10MB cap at upload time, stored for display |
@@ -259,7 +259,7 @@ different questions (who exactly saw a message, vs. how many are unread).
 ---
 
 ## Migration tooling
-`ddl-auto=update` is fine for solo dev, but with 9 tables and several FKs/
+`ddl-auto=update` is fine for solo dev, but with 11 tables and several FKs/
 constraints, hand-written Flyway migrations should be added **before**
 implementation starts, not retrofitted after — a blocking prerequisite,
 not a someday item.

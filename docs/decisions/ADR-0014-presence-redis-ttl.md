@@ -1,9 +1,9 @@
 # ADR-0014: Redis TTL keys for presence, driven by WebSocket lifecycle
 
-**Status:** Accepted | **Date:** 2026-07-09
+**Status:** Accepted | **Date:** 2026-07-17
 
 ## Context
-FR-20 needs to know who's online right now. Presence is ephemeral —
+FR-22 needs to know who's online right now. Presence is ephemeral —
 NFR-12 only requires *messages* to survive a restart, not presence — so
 it lives in Redis, not Postgres.
 
@@ -26,7 +26,7 @@ liveness only, not activity liveness.
 - **"Away/idle" intermediate state** — more realistic (Slack/Discord-
   style), but requires tracking actual user activity signals, not just
   connection liveness — a meaningfully bigger feature, not requested by
-  FR-20 as confirmed.
+  FR-22 as confirmed.
 
 ## Trade-offs / Consequences
 - Presence is connection-based, not activity-based — a user with the tab

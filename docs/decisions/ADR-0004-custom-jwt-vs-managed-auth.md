@@ -1,6 +1,6 @@
 # ADR-0004: Hand-rolled Spring Security + JWT, not a managed auth provider
 
-**Status:** Accepted | **Date:** 2026-07-09
+**Status:** Accepted | **Date:** 2026-07-17
 
 ## Context
 Managed identity providers (Supabase Auth, Auth0, Firebase Auth) exist so

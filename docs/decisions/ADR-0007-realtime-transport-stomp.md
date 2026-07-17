@@ -1,9 +1,9 @@
 # ADR-0007: STOMP over WebSocket (with SockJS fallback)
 
-**Status:** Accepted | **Date:** 2026-07-09
+**Status:** Accepted | **Date:** 2026-07-17
 
 ## Context
-FR-15/17/21/22/25 need pushing events to specific clients (a direct
+FR-15/17/20/21/23/24/27 need pushing events to specific clients (a direct
 message to its recipient) and groups of clients (a group message to every
 member, a typing/reaction event to everyone in a conversation). NFR-1
 requires <500ms delivery.
@@ -22,7 +22,7 @@ simple broker is used for now (see Trade-offs).
 - **Socket.IO (via a Java port)** — great client DX, but not JVM-native;
   sits awkwardly next to Spring Security instead of using STOMP's
   built-in `ChannelInterceptor` support.
-- **SSE + REST for sending** — one-directional; FR-21 (typing) is
+- **SSE + REST for sending** — one-directional; FR-23 (typing) is
   inherently bidirectional, the wrong fit for SSE.
 - **Long polling** — works everywhere but fights NFR-1/NFR-4 directly.
 

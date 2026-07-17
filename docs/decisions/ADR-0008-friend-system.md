@@ -1,9 +1,9 @@
 # ADR-0008: Friend-gated messaging with a dedicated friendship system
 
-**Status:** Accepted | **Date:** 2026-07-09
+**Status:** Accepted | **Date:** 2026-07-17
 
 ## Context
-Product owner confirmed (2026-07-09): a real friend list (send/accept/
+Product owner confirmed (2026-07-17): a real friend list (send/accept/
 decline requests) is required, not open "message anyone by username"
 (Telegram-style). This decision determines *who can create a direct
 conversation with whom* — a gate every messaging feature sits behind.

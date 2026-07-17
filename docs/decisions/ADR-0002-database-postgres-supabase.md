@@ -1,6 +1,6 @@
 # ADR-0002: PostgreSQL as the database, hostable on Supabase
 
-**Status:** Accepted | **Date:** 2026-07-09
+**Status:** Accepted | **Date:** 2026-07-17
 
 ## Context
 The domain is inherently relational: unique usernames/emails, a message

@@ -23,6 +23,8 @@ target is deliberately modest.
   disk — containers are ephemeral/replaceable (consistent with ADR-0000's
   containerized deployment), so a restart or redeploy must not lose
   uploaded files. Drives ADR-0003 (external object storage).
+- Attachment objects are private; access is granted only through short-lived
+  signed URLs generated after server-side conversation authorization.
 
 ## Security
 - **NFR-7**: Passwords never stored in plaintext or reversible form
@@ -72,7 +74,10 @@ target is deliberately modest.
   `../testing/strategy.md`).
 - **NFR-26**: Every REST endpoint and WebSocket destination has at least
   one integration test exercising it against a real Postgres instance
-  (Testcontainers, ADR-0019) — not just unit-tested with mocks.
+  (Testcontainers, ADR-0019). The React app also has automated
+  Vitest/React Testing Library coverage for the auth store and refresh behavior,
+  protected routing, chat message/tombstone/attachment rendering, and unread
+  badge clearing; CI runs these tests before build/deploy.
 
 ## Deployment & CI (new)
 - **NFR-27**: Every push to the main branch runs the full test suite

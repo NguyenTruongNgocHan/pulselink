@@ -3,7 +3,7 @@
 > **Framing note:** PulseLink is a solo portfolio project, not a real
 > client engagement — but it's designed the way a real client requirement
 > would be, so every technical decision traces back to something concrete.
-> Scope confirmed with product owner on 2026-07-09, expanded on 2026-07-09
+> Scope confirmed with product owner on 2026-07-17, expanded on 2026-07-17
 > (round 2) to add message search, push notifications, and admin
 > hand-off — see `functional-requirements.md` for the full current list.
 

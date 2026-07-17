@@ -15,10 +15,12 @@ intent becomes concrete and checkable, not just aspirational.
 ```mermaid
 flowchart TB
     E2E["End-to-end (browser)<br/>— out of scope this stage, see below"]
-    Integration["Integration tests<br/>REST + WebSocket + real Postgres (Testcontainers, ADR-0019)"]
-    Unit["Unit tests<br/>service-layer business logic, mocked dependencies"]
+    Integration["Backend integration tests<br/>REST + WebSocket + real Postgres"]
+    Frontend["Frontend component/state tests<br/>Vitest + React Testing Library"]
+    Unit["Backend unit tests<br/>service-layer business logic"]
 
     Unit --> Integration --> E2E
+    Frontend --> E2E
 ```
 
 Most tests should be unit tests (fast, precise, one class of business
@@ -50,6 +52,25 @@ DB, not by unit-testing annotations).
 
 **Tools**: JUnit 5, Mockito (mock repositories/external calls), AssertJ
 for fluent assertions.
+
+
+## Frontend tests — required minimum (NFR-26)
+
+Use **Vitest**, **React Testing Library**, `@testing-library/user-event`, and
+`jsdom`. Tests focus on behavior, not implementation details. The mandatory
+baseline is:
+
+| Area | Required behavior |
+|---|---|
+| Auth state | stores tokens only through the auth abstraction, triggers one refresh attempt, logs out/redirects when refresh fails |
+| Protected routes | unauthenticated users reach login; authenticated users reach the app shell |
+| Message rendering | normal, edited, tombstoned, reaction, and attachment states render correctly; expired attachment URLs can be refreshed |
+| Realtime state | a received message is merged without duplication; typing state expires; reconnect reconciliation can replace optimistic state with server history |
+| Unread state | badge increments for background conversations and clears when read/open acknowledgement succeeds |
+
+Each feature phase adds tests for the UI state it introduces. Snapshot-only tests
+do not satisfy this requirement; assertions must describe visible behavior or
+state transitions.
 
 ## Integration tests — every endpoint and WebSocket destination (NFR-26)
 
@@ -97,14 +118,9 @@ production), a Redis Testcontainer for presence/rate-limit tests,
   delivery, 500 concurrent connections) — the NFRs state targets, but no
   load-testing tool/script is set up yet to actually verify them. A real
   gap if this were being sized for production traffic.
-- **Frontend unit tests** (Vitest + React Testing Library) — lighter
-  priority than backend per the product owner's explicit "core backend
-  must be solid" framing; worth having eventually, not the focus of this
-  document.
 
 ## CI integration
-Every test in this document runs in the GitHub Actions backend job
-(`mvn test`) on every push/PR, gating deployment per NFR-27 and
+Backend tests run in the GitHub Actions backend job (`mvn test`); frontend tests run in the frontend job (`npm run test -- --run`) on every push/PR, gating deployment per NFR-27 and
 `architecture/deployment.md` — a test suite that isn't run automatically
 on every change isn't really a safety net, so this isn't optional tooling
 sitting alongside the pipeline; it's a required, blocking stage of it.

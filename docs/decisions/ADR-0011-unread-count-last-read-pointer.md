@@ -1,9 +1,9 @@
 # ADR-0011: A separate last-read pointer for unread badge counts
 
-**Status:** Accepted | **Date:** 2026-07-09
+**Status:** Accepted | **Date:** 2026-07-17
 
 ## Context
-FR-26/27 need a cheap per-conversation unread count for a badge UI. ADR-
+FR-29/30 need a cheap per-conversation unread count for a badge UI. ADR-
 0010 already tracks detailed per-message, per-reader receipts — but
 computing "how many unread messages in this conversation" from that table
 means counting messages with no matching receipt row for this user on
