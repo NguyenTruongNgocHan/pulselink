@@ -1,6 +1,6 @@
 # ADR-0006: Docker Compose for local orchestration (not Kubernetes)
 
-**Status:** Accepted | **Date:** 2026-07-09
+**Status:** Accepted | **Date:** 2026-07-17
 
 ## Context
 Local dev needs Postgres, Redis, the API, and the Vite dev server running

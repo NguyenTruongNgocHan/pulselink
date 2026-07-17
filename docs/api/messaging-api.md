@@ -1,7 +1,7 @@
 # API Reference — Conversations & Messages (Design, ⬜ Not Yet Implemented)
 
 Base path: `/api/conversations`. All require `Authorization: Bearer`.
-Implements FR-12..20, 25..27. Live delivery is over WebSocket — see
+Implements FR-12..21 and FR-24..27. Live delivery is over WebSocket — see
 `realtime-protocol.md`; these endpoints cover creation, history, uploads,
 edit/delete, and reactions. For searching message history, see
 `search-api.md`. For offline push delivery, see `push-api.md`.
@@ -27,7 +27,7 @@ Cursor-paginated history, newest-first.
 { "messages": [{
     "id": "uuid", "senderId": "uuid", "content": "hey!",
     "createdAt": "...", "editedAt": null, "deletedAt": null,
-    "attachments": [{ "fileUrl": "...", "fileName": "photo.jpg", "mimeType": "image/jpeg" }],
+    "attachments": [{ "downloadUrl": "short-lived-signed-url", "fileName": "photo.jpg", "mimeType": "image/jpeg" }],
     "reactions": [{ "userId": "uuid", "emoji": "👍" }],
     "seenBy": [{ "userId": "uuid", "seenAt": "..." }]
   }],
@@ -38,9 +38,9 @@ cleared server-side) so the UI can render it in place.
 Errors: `403` if caller isn't a participant.
 
 ### `POST /api/conversations/{id}/attachments`
-`multipart/form-data` upload (FR-13). Uploads to Supabase Storage
+`multipart/form-data` upload (FR-13). Uploads to the private Supabase Storage bucket
 (ADR-0003), returns metadata to attach to the next WebSocket `send`.
-`201 Created` → `{ "fileUrl": "...", "fileName": "...", "mimeType": "...", "sizeBytes": 123456 }`.
+`201 Created` → `{ "downloadUrl": "short-lived-signed-url", "fileName": "...", "mimeType": "...", "sizeBytes": 123456 }`.
 Errors: `413` if over NFR-5's 10MB cap.
 
 ### `PATCH /api/conversations/{conversationId}/messages/{messageId}`

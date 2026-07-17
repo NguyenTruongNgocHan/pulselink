@@ -1,10 +1,10 @@
 # ADR-0010: Unified per-participant read receipts (direct + group)
 
-**Status:** Accepted | **Date:** 2026-07-09
+**Status:** Accepted | **Date:** 2026-07-17
 
 ## Context
-FR-22 requires detailed group seen-status — *which* participants have
-seen a message, not just a count (product owner confirmed, 2026-07-09).
+FR-24 requires detailed group seen-status — *which* participants have
+seen a message, not just a count (product owner confirmed, 2026-07-17).
 Needs to work identically for direct (1 other participant) and group (N
 participants) conversations.
 
@@ -22,7 +22,7 @@ over this table — no special-casing for direct vs group, no boolean
   who has seen *this exact* message" once messages are read out of order
   across sessions/devices. (This pattern is still used — see ADR-0011 —
   but for unread *counts*, not for detailed "seen by" display, which is
-  what FR-22 specifically asks for.)
+  what FR-24 specifically asks for.)
 
 ## Trade-offs / Consequences
 - `message_read_receipts` grows as

@@ -1,6 +1,6 @@
 # ADR-0019: Testcontainers (real Postgres) for integration tests, not H2
 
-**Status:** Accepted | **Date:** 2026-07-09
+**Status:** Accepted | **Date:** 2026-07-17
 
 ## Context
 NFR-26 requires integration tests against a real database. A common

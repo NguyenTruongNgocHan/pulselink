@@ -1,8 +1,8 @@
 # Functional Requirements
 
 All items below are ⬜ **Not started** — the repository currently contains
-no business logic (verified 2026-07-09). Numbered so ADRs/code/tests can
-reference them (e.g. "implements FR-12"). Expanded 2026-07-09 (round 2):
+no business logic (verified 2026-07-17). Numbered so ADRs/code/tests can
+reference them (e.g. "implements FR-12"). Expanded 2026-07-17 (round 2):
 message search, push notifications, admin hand-off.
 
 ## Account

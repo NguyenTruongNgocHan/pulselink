@@ -1,6 +1,6 @@
 # ADR-0000: Modular monolith, not microservices
 
-**Status:** Accepted | **Date:** 2026-07-09
+**Status:** Accepted | **Date:** 2026-07-17
 
 ## Context
 Solo developer, greenfield, near-zero budget (NFR-14), needs a demo within
@@ -21,7 +21,7 @@ interface, so a future extraction is a deployment change, not a rewrite.
 - **Unstructured monolith** (no module boundaries) — faster short-term,
   forecloses the "grow later" requirement.
 - **Serverless functions** — fits REST well, but persistent WebSocket
-  connections (FR-15/FR-21) don't fit the typical short-lived-invocation
+  connections (FR-15/FR-23) don't fit the typical short-lived-invocation
   model without extra managed infra.
 
 ## Trade-offs / Consequences

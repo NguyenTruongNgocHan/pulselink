@@ -1,6 +1,6 @@
 # ADR-0015: PostgreSQL native full-text search, not a dedicated search engine
 
-**Status:** Accepted | **Date:** 2026-07-09
+**Status:** Accepted | **Date:** 2026-07-17
 
 ## Context
 FR-28 (confirmed in scope, round 2): search message history by keyword,

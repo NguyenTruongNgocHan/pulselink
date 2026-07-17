@@ -1,7 +1,7 @@
 # Real-Time Protocol — STOMP over WebSocket (Design, ⬜ Not Yet Implemented)
 
 Implements ADR-0007 (transport), ADR-0010/0011 (receipts/unread), ADR-
-0013 (reactions), ADR-0014 (presence). Covers FR-15, 17, 20..22, 25.
+0013 (reactions), ADR-0014 (presence). Covers FR-15, FR-17, FR-20..27, FR-29..31.
 
 ## Connecting
 - Endpoint: `wss://<host>/ws` (SockJS fallback per ADR-0007).
@@ -56,14 +56,14 @@ A `null` emoji in this event means the user removed their reaction — the
 event always carries the reactor's *current* state (replace, not
 append), consistent with ADR-0013's single-reaction model.
 
-## Typing (FR-21)
+## Typing (FR-23)
 **Client → Server**: `/app/conversations/{id}/typing` (debounced ≤once/2s,
 no payload needed). **Server → Client**:
 `/topic/conversations/{id}/typing` → `{ "userId": "uuid", "username": "alice" }`.
 Fire-and-forget, nothing persisted (not even Redis) — client clears the
 indicator itself after ~3s of silence.
 
-## Read receipts & unread count (FR-22, 26/27; ADR-0010/0011)
+## Read receipts & unread count (FR-24, FR-29..30; ADR-0010/0011)
 **Client → Server**: `/app/conversations/{id}/read`
 ```json
 { "messageId": "uuid-of-latest-visible-message" }
@@ -78,7 +78,7 @@ in the same transaction (ADR-0011 — one user action, two purposes).
 { "messageId": "uuid", "userId": "uuid-of-reader", "seenAt": "..." }
 ```
 
-## Presence (FR-20, ADR-0014)
+## Presence (FR-22, ADR-0014)
 Global per user, not conversation-scoped. Subscribe:
 `/topic/presence/{userId}` → `{ "userId": "uuid", "online": true }`.
 Emitted on `CONNECT`/`DISCONNECT` and on Redis TTL expiry (a lightweight
@@ -94,6 +94,8 @@ refreshes (`POST /api/auth/refresh`) and reconnects.
 
 ## What this design deliberately does not solve yet
 - Multi-instance broadcast (ADR-0007's named future trigger).
-- Delivery retry/ack if a client is offline when sent — the message is
-  safely persisted (NFR-12); the client fetches it via REST on next
-  connect. No push-to-closed-client mechanism (explicit non-goal).
+- Guaranteed push delivery or a retry/dead-letter queue. The message is
+  safely persisted before ACK (NFR-12). If the recipient has no active
+  WebSocket connection, the message module invokes the push module (FR-31,
+  ADR-0016) on a best-effort basis. On reconnect or notification open, the
+  client fetches REST history to reconcile from PostgreSQL.

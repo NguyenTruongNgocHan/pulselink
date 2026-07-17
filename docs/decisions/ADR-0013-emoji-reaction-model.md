@@ -1,9 +1,9 @@
 # ADR-0013: One reaction per user per message (Messenger-style)
 
-**Status:** Accepted | **Date:** 2026-07-09
+**Status:** Accepted | **Date:** 2026-07-17
 
 ## Context
-FR-25 confirmed in scope: react to any message with an emoji. Two common
+FR-27 confirmed in scope: react to any message with an emoji. Two common
 real-world models exist: Messenger's (one reaction per person per
 message — picking a new emoji replaces your previous one) and Slack's
 (a person can stack multiple different emoji reactions on the same

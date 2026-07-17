@@ -1,9 +1,9 @@
 # ADR-0012: In-place edit, soft-delete tombstone
 
-**Status:** Accepted | **Date:** 2026-07-09
+**Status:** Accepted | **Date:** 2026-07-17
 
 ## Context
-FR-23/24: both edit and delete confirmed in scope.
+FR-25/26: both edit and delete confirmed in scope.
 
 ## Decision
 **Edit**: `messages.content` is overwritten, `edited_at` set to now. No

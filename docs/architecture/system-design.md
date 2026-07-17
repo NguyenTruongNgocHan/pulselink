@@ -1,7 +1,7 @@
 # System Design — Full Scope
 
 Target shape of the whole system, derived from `docs/requirements/`.
-**Nothing in this system is built yet** (verified 2026-07-09) — this is
+**Nothing in this system is built yet** (verified 2026-07-17) — this is
 the map the implementation will follow.
 
 ## C1 — System context
@@ -13,7 +13,7 @@ flowchart TB
     Storage[("Supabase Storage<br/>(attachment files)")]
 
     User -->|"HTTPS + WSS"| PulseLink
-    User -->|"fetch attachment (direct URL)"| Storage
+    User -->|"fetch attachment (short-lived signed URL)"| Storage
     PulseLink -->|"upload on send"| Storage
 ```
 
@@ -28,15 +28,15 @@ flowchart TB
     subgraph Server["API — Spring Boot (modular monolith, ADR-0000)"]
         Auth["auth/user module<br/>(FR-1..5)"]
         Friend["friend module<br/>(FR-6..11)"]
-        Msg["message module<br/>(FR-12..20, 25..28)"]
-        Presence["presence module<br/>(FR-21..24, 29..31)"]
+        Msg["message module<br/>(FR-12..21, FR-24..30)"]
+        Presence["presence module<br/>(FR-22..23; supports FR-31)"]
         Push["push module<br/>(FR-31, ADR-0016)"]
         RateLimit["rate limiter<br/>(ADR-0017, cross-cutting)"]
     end
 
     DB[("PostgreSQL<br/>users, friendships, conversations,<br/>messages (+ search_vector), attachments,<br/>reactions, receipts, push_subscriptions")]
-    Cache[("Redis<br/>presence, typing, rate-limit counters")]
-    Storage[("Supabase Storage<br/>attachment files, ADR-0003")]
+    Cache[("Redis-compatible store<br/>local Redis / demo Render Key Value<br/>presence + rate-limit counters")]
+    Storage[("Supabase Storage<br/>private attachment bucket, ADR-0003")]
     PushSvc[("Browser push service<br/>(e.g. FCM/Mozilla push endpoints)<br/>ADR-0016 — not PulseLink's own infra")]
 
     Web -->|"REST"| Auth
@@ -66,12 +66,13 @@ Key ties to requirements:
 - **Friend gate** (ADR-0008): the `message` module never creates a direct
   conversation without checking `friend` module state first — this is the
   single most important cross-module dependency in the system.
-- **Attachments bypass the API for reads** (ADR-0003): the API is only in
-  the *upload* path; fetching an attachment goes straight from the
-  browser to Supabase Storage, keeping the API off the hot path for
-  potentially large file downloads (consistent with NFR-2's API latency
-  target — that budget is for API calls, not raw file transfer).
-- **Redis only holds what's fine to lose** (presence, typing) — nothing
+- **Private attachments use authorized signed URLs** (ADR-0003): the API
+  accepts uploads and stores an immutable object key. For reads, the client
+  requests message/history data; after checking active conversation membership,
+  the API supplies a short-lived signed URL. The browser then downloads the
+  bytes directly from Supabase Storage, so authorization remains server-side
+  without proxying the file body through the API.
+- **The Redis-compatible store only holds what is safe to reconstruct** (presence and rate-limit windows) — nothing
   required by NFR-12 (message durability) touches it.
 
 ## C3 — Module boundaries
@@ -113,13 +114,14 @@ sequenceDiagram
     participant Storage as Supabase Storage
     participant Presence as presence module
     participant Recipient as Recipient (WebSocket, if online)
+    participant Push as push module / browser push service
 
     Sender->>Msg: send message (conversationId, text, [attachment])
     Msg->>Friend: are sender & recipient friends, not blocked?
     Friend-->>Msg: yes
     opt has attachment
-        Msg->>Storage: upload file
-        Storage-->>Msg: file URL
+        Msg->>Storage: upload file to private bucket
+        Storage-->>Msg: immutable object key
     end
     Msg->>DB: persist message (+ message_attachments row if any)
     Msg->>Presence: is recipient online?
@@ -127,7 +129,10 @@ sequenceDiagram
         Presence-->>Msg: yes
         Msg->>Recipient: push over WebSocket (NFR-1: <500ms)
     else offline
-        Note over Msg: nothing pushed; recipient fetches via<br/>REST history on next login
+        Presence-->>Msg: no
+        Msg->>Push: send best-effort Web Push if subscription exists
+        Push-->>Recipient: notification via service worker (FR-31)
+        Note over Recipient: on open/reconnect, fetch REST history;<br/>PostgreSQL remains the source of truth
     end
     Msg-->>Sender: ack (persisted)
 ```

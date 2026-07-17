@@ -1,7 +1,7 @@
 # ADR-0009: Single-admin group role model, with explicit hand-off + succession
 
-**Status:** Accepted (revised 2026-07-09, round 2)
-**Date:** 2026-07-09
+**Status:** Accepted (revised 2026-07-17, round 2)
+**Date:** 2026-07-17
 
 ## Revision note
 The original version of this ADR (round 1) explicitly rejected admin

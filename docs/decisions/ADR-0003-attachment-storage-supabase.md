@@ -1,51 +1,50 @@
-# ADR-0003: Supabase Storage (S3-compatible) for message attachments
+# ADR-0003: Private Supabase Storage for message attachments
 
-**Status:** Accepted | **Date:** 2026-07-09
+**Status:** Accepted | **Date:** 2026-07-17
 
 ## Context
-FR-13 requires attaching images/files to messages (confirmed in scope,
-2026-07-09). NFR-6 requires attachment storage to survive container
-restarts/redeploys — the API container's local disk is not durable.
-ADR-0002 already established Supabase for Postgres hosting.
+FR-13 requires image/file attachments. NFR-6 requires files to survive API
+container replacement, and chat content must not become permanently public by
+possession of a stable URL. The API must enforce the same conversation
+membership and blocking rules for attachments as it does for message metadata.
 
 ## Decision
-Store attachment **files** in Supabase Storage (an S3-compatible object
-store bundled with the same Supabase project as the database). Store only
-**metadata** in Postgres (`message_attachments` table: URL, filename, MIME
-type, size — see `schema.md`), never the file bytes themselves.
+Use a **private Supabase Storage bucket** for attachment bytes. PostgreSQL stores
+attachment metadata plus an immutable `object_key`; it does not store file bytes
+or a permanent public URL.
 
-The API uploads to Supabase Storage via its S3-compatible API, gets back a
-public or signed URL, and saves that URL alongside the message. The
-frontend fetches attachments directly from Supabase Storage's URL, not
-proxied through the API — the API is only in the write/metadata path.
+Upload flow:
+1. An authenticated participant uploads through the API.
+2. The API validates membership, MIME type, size (NFR-5), and rate limit.
+3. The API writes the object to the private bucket and stores its `object_key`.
+4. The attachment is linked to a message only after the message transaction
+   succeeds; unlinked temporary objects are eligible for scheduled cleanup.
+
+Read flow:
+1. The API loads a message/history response and verifies that the caller is an
+   active conversation participant and is not denied by applicable block rules.
+2. The API generates a **short-lived signed download URL** (target TTL: 5
+   minutes) for each authorized attachment.
+3. The browser downloads bytes directly from Supabase Storage using that URL.
+
+The API never proxies the file body on normal reads, and clients must treat a
+signed URL as ephemeral: after expiry they reload the message/history or call the
+authorized attachment-download endpoint to receive a new URL.
 
 ## Alternatives Considered
-- **Store file bytes in Postgres (`bytea`/large objects)** — one fewer
-  external dependency, but bloats the database with binary data,
-  degrades backup/restore times, and works against NFR-2's API latency
-  target once files are large. Rejected outright — this is a well-known
-  anti-pattern for exactly this reason.
-- **Local disk on the API container** — simplest to code, but directly
-  violates NFR-6: a redeploy or restart (container replaced, not just
-  rebooted) loses every uploaded file. Rejected.
-- **AWS S3 / Cloudflare R2 directly** — equally valid S3-compatible
-  choices, and either would work with the same design. Supabase Storage
-  is chosen specifically because it's already the same account/project as
-  the database (ADR-0002) — one less service to separately provision,
-  bill, and manage credentials for, which matters more here than any
-  feature difference between the providers at this scale.
+- **Public bucket/permanent URL** — simplest, but anyone retaining the URL could
+  access a private-conversation file indefinitely. Rejected.
+- **Store bytes in PostgreSQL** — increases database size and backup/restore
+  cost, and puts large transfers on the API/database path. Rejected.
+- **API-container local disk** — lost on redeploy, violating NFR-6. Rejected.
+- **AWS S3 or Cloudflare R2** — architecturally valid; Supabase is selected to
+  reduce provider and credential overhead because PostgreSQL is already there.
 
 ## Trade-offs / Consequences
-- Couples attachment storage to the same vendor as the database — if
-  Supabase's free tier limits are hit for storage specifically (separate
-  quota from the DB), that's a second constraint to watch, not just one.
-- Public/signed URL strategy needs a real decision at implementation
-  time: public URLs are simpler but mean "anyone with the link" can view
-  a file indefinitely; signed URLs (time-limited) are more correct for
-  private conversations but add expiry-handling complexity. Flagged here
-  as an open implementation detail, leaning toward signed URLs given
-  NFR-11's blocking/privacy requirements — worth confirming before
-  building.
-- No virus/malware scanning of uploads (noted as an explicit NFR
-  exclusion) — a real gap if this became a production system with
-  untrusted users.
+- Signed URLs can expire while a chat remains open; the client needs a refresh
+  path and must not persist them as durable state.
+- Storage authorization depends on API checks and secure service credentials.
+- Orphan cleanup is required for uploads that never become attached to a
+  persisted message.
+- Virus/malware scanning and thumbnail generation remain explicitly out of
+  scope for this stage.

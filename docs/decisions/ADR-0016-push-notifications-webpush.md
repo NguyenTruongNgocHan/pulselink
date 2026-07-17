@@ -1,6 +1,6 @@
 # ADR-0016: Web Push API (VAPID), not Firebase Cloud Messaging
 
-**Status:** Accepted | **Date:** 2026-07-09
+**Status:** Accepted | **Date:** 2026-07-17
 
 ## Context
 FR-31 (confirmed in scope, round 2): notify a user of a new message even
