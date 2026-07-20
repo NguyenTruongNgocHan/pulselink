@@ -1,0 +1,14 @@
+{
+  "baseline": "2.0-production-complete",
+  "generated_utc": "2026-07-20T14:07:12.337402+00:00",
+  "functional_requirements": 56,
+  "non_functional_requirements": 44,
+  "durable_tables": 16,
+  "accepted_adrs": 26,
+  "user_screens": 17,
+  "admin_screens": 10,
+  "traceability_rows": 56,
+  "broken_internal_links": 0,
+  "open_decisions": 0,
+  "stale_markers": []
+}

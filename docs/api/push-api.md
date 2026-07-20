@@ -1,8 +1,8 @@
-# API Reference — Push Notifications (Design, ⬜ Not Yet Implemented)
+# API Reference — Push Notifications (Design, Design)
 
 Implements FR-31, ADR-0016. Requires `Authorization: Bearer`.
 
-### `POST /api/push/subscriptions`
+### `POST /api/v1/push/subscriptions`
 Registers a browser push subscription obtained client-side from the
 service worker's `PushManager.subscribe()` call.
 ```json
@@ -15,7 +15,7 @@ service worker's `PushManager.subscribe()` call.
 registered — idempotent). Stores a `push_subscriptions` row for the
 caller.
 
-### `DELETE /api/push/subscriptions`
+### `DELETE /api/v1/push/subscriptions`
 ```json
 { "endpoint": "https://fcm.googleapis.com/fcm/send/..." }
 ```
@@ -23,7 +23,7 @@ caller.
 logs out on that device — removes that one subscription (not all of the
 user's subscriptions, since they may be logged in on multiple devices).
 
-### `GET /api/push/vapid-public-key`
+### `GET /api/v1/push/vapid-public-key`
 No auth required (this is a public key, safe to expose). Returns the
 server's VAPID public key so the client can pass it to
 `PushManager.subscribe()`.

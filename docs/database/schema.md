@@ -1,8 +1,6 @@
 # Database Schema — Full System Design
 
-Every table below is ⬜ **Planned** — nothing is implemented yet (verified
-2026-07-17). Presence/typing state is intentionally absent — it lives in
-Redis (ADR-0014), outside the durable store.
+PostgreSQL is the durable source of truth. Presence, typing, and rate-limit windows are intentionally absent from this schema and live in Redis-compatible ephemeral storage. Flyway owns migrations; Hibernate uses `ddl-auto=validate`.
 
 ## Entity relationship
 
@@ -11,255 +9,127 @@ erDiagram
     USERS ||--o{ REFRESH_TOKENS : owns
     USERS ||--o{ FRIENDSHIPS : requests
     USERS ||--o{ USER_BLOCKS : blocks
-    USERS ||--o{ CONVERSATION_PARTICIPANTS : "participates in"
+    USERS ||--o{ CONVERSATION_PARTICIPANTS : participates
     USERS ||--o{ PUSH_SUBSCRIPTIONS : registers
     CONVERSATIONS ||--o{ CONVERSATION_PARTICIPANTS : has
     CONVERSATIONS ||--o{ MESSAGES : contains
     USERS ||--o{ MESSAGES : sends
     MESSAGES ||--o{ MESSAGE_ATTACHMENTS : has
     MESSAGES ||--o{ MESSAGE_REACTIONS : has
-    MESSAGES ||--o{ MESSAGE_READ_RECEIPTS : "seen via"
-    USERS ||--o{ MESSAGE_REACTIONS : reacts
-    USERS ||--o{ MESSAGE_READ_RECEIPTS : reads
-
-    USERS {
-        uuid id PK
-        varchar email UK
-        varchar username UK
-        varchar password_hash
-        varchar display_name
-        varchar avatar_url
-        varchar role
-        boolean enabled
-        timestamp created_at
-        timestamp updated_at
-    }
-    REFRESH_TOKENS {
-        uuid id PK
-        uuid user_id FK
-        varchar token UK
-        timestamp expires_at
-        boolean revoked
-        timestamp created_at
-    }
-    FRIENDSHIPS {
-        uuid id PK
-        uuid requester_id FK
-        uuid addressee_id FK
-        varchar status "PENDING | ACCEPTED | DECLINED"
-        timestamp created_at
-        timestamp responded_at
-    }
-    USER_BLOCKS {
-        uuid blocker_id PK_FK
-        uuid blocked_id PK_FK
-        timestamp created_at
-    }
-    CONVERSATIONS {
-        uuid id PK
-        varchar type "DIRECT | GROUP"
-        varchar name "null for DIRECT"
-        varchar avatar_url "null for DIRECT"
-        uuid created_by FK
-        timestamp created_at
-        timestamp updated_at
-    }
-    CONVERSATION_PARTICIPANTS {
-        uuid conversation_id PK_FK
-        uuid user_id PK_FK
-        varchar role "ADMIN | MEMBER, ADR-0009"
-        uuid last_read_message_id FK "ADR-0011"
-        timestamp joined_at
-        timestamp left_at
-    }
-    MESSAGES {
-        uuid id PK
-        uuid conversation_id FK
-        uuid sender_id FK
-        text content
-        timestamp created_at
-        timestamp edited_at
-        timestamp deleted_at
-    }
-    MESSAGE_ATTACHMENTS {
-        uuid id PK
-        uuid message_id FK
-        varchar file_url
-        varchar file_name
-        varchar mime_type
-        bigint size_bytes
-        timestamp created_at
-    }
-    MESSAGE_REACTIONS {
-        uuid message_id PK_FK
-        uuid user_id PK_FK
-        varchar emoji
-        timestamp created_at
-    }
-    MESSAGE_READ_RECEIPTS {
-        uuid message_id PK_FK
-        uuid user_id PK_FK
-        timestamp seen_at
-    }
-    PUSH_SUBSCRIPTIONS {
-        uuid id PK
-        uuid user_id FK
-        text endpoint UK
-        text p256dh_key
-        text auth_key
-        timestamp created_at
-        timestamp last_used_at
-    }
+    MESSAGES ||--o{ MESSAGE_READ_RECEIPTS : seen_by
+    USERS ||--o{ REPORTS : files
+    REPORTS ||--|| REPORT_EVIDENCE : captures
+    REPORTS ||--o{ REPORT_COMMENTS : discusses
+    USERS ||--o{ NOTIFICATIONS : receives
+    USERS ||--o{ ADMIN_AUDIT_LOGS : acts
 ```
 
----
+## Table inventory — exactly 16 durable tables
+
+1. `users`
+2. `refresh_tokens`
+3. `friendships`
+4. `user_blocks`
+5. `conversations`
+6. `conversation_participants`
+7. `messages`
+8. `message_attachments`
+9. `message_reactions`
+10. `message_read_receipts`
+11. `push_subscriptions`
+12. `reports`
+13. `report_evidence`
+14. `report_comments`
+15. `notifications`
+16. `admin_audit_logs`
 
 ## `users`
-| Column | Type | Constraints | Notes |
-|---|---|---|---|
-| `id` | UUID | PK, generated | |
-| `email` | varchar(254) | unique, not null | login identifier |
-| `username` | varchar(30) | unique, not null | letters/digits/underscore, used for friend search (FR-6) |
-| `password_hash` | text | not null | BCrypt (ADR-0004) |
-| `display_name` | varchar(50) | not null | shown in UI instead of raw username (FR-5) |
-| `avatar_url` | text | nullable | points at Supabase Storage (ADR-0003) once uploaded |
-| `role` | varchar(20) | not null, default `USER` | `USER` \| `ADMIN`; no admin-only endpoints exist yet, forward-looking |
-| `enabled` | boolean | not null, default `true` | |
-| `created_at` / `updated_at` | timestamp | not null | |
+
+| Column | Type | Rules |
+|---|---|---|
+| id | UUID | PK, `gen_random_uuid()` |
+| email | VARCHAR(254) | normalized lowercase, unique, not null |
+| username | VARCHAR(30) | normalized lowercase unique, display casing may be separate; `[A-Za-z0-9_]{3,30}` |
+| password_hash | VARCHAR(255) | BCrypt, not null |
+| display_name | VARCHAR(50) | not null |
+| avatar_object_key | VARCHAR(500) | nullable, private storage key |
+| system_role | VARCHAR(20) | `USER|MODERATOR|ADMIN|SUPER_ADMIN`, default `USER` |
+| account_status | VARCHAR(30) | `ACTIVE|SUSPENDED|BANNED|DEACTIVATION_PENDING|DEACTIVATED` |
+| suspended_until | TIMESTAMPTZ | nullable; required for suspension |
+| deactivation_requested_at / deactivated_at | TIMESTAMPTZ | lifecycle timestamps |
+| token_version | BIGINT | increments on global session invalidation |
+| last_seen_at | TIMESTAMPTZ | durable fallback; realtime presence remains Redis |
+| created_at / updated_at | TIMESTAMPTZ | UTC |
+
+Indexes: normalized email/username unique, `(account_status,created_at)`, `(system_role,account_status)`, `last_seen_at`. Application invariant preserves at least one active super admin.
 
 ## `refresh_tokens`
-Unchanged from prior auth design — see ADR-0005.
-| Column | Type | Constraints |
-|---|---|---|
-| `id` | UUID | PK |
-| `user_id` | UUID | FK → `users.id`, not null |
-| `token` | varchar(512) | unique, not null (opaque random string, not a JWT) |
-| `expires_at` | timestamp | not null |
-| `revoked` | boolean | not null, default `false` |
-| `created_at` | timestamp | not null |
 
-## `friendships` — ADR-0008
-| Column | Type | Constraints | Notes |
-|---|---|---|---|
-| `id` | UUID | PK, generated | |
-| `requester_id` | UUID | FK → `users.id`, not null | who sent the request |
-| `addressee_id` | UUID | FK → `users.id`, not null | who received it |
-| `status` | varchar(10) | not null, default `PENDING` | `PENDING` \| `ACCEPTED` \| `DECLINED` |
-| `created_at` | timestamp | not null | request sent time |
-| `responded_at` | timestamp | nullable | non-null once accepted/declined |
+`id`, `user_id FK`, `family_id`, `token_hash` unique, `issued_at`, `expires_at`, `consumed_at`, `revoked_at`, `replaced_by_id`, `device_name`, `ip_hash`, `user_agent_hash`. Raw refresh token is never stored. Indexed by user/family/expiry.
 
-**Service-layer constraint**: no duplicate pending request in either
-direction between the same two users before insert (checked in code, not
-a DB constraint — a symmetric uniqueness check isn't natural to express
-as a single SQL UNIQUE constraint on directional rows).
-**Index needed**: `(addressee_id, status)` for "my pending incoming
-requests" (FR-8); `(requester_id, status)` or a combined lookup for
-"are these two users friends" (checked from either direction).
+## `friendships`
 
-## `user_blocks` — ADR-0008
-| Column | Type | Constraints | Notes |
-|---|---|---|---|
-| `blocker_id` | UUID | PK (composite), FK → `users.id` | |
-| `blocked_id` | UUID | PK (composite), FK → `users.id` | |
-| `created_at` | timestamp | not null | |
+Canonical pair `user_low_id < user_high_id`, plus `requester_id`, `status PENDING|ACCEPTED`, timestamps. Unique pair prevents duplicate/reciprocal rows. Removing friendship deletes this relationship, not message history.
 
-One-directional by design: a block doesn't require the blocked user's
-awareness or consent, and unblocking is just deleting this row (does not
-resurrect any prior `friendships` row — must be re-requested per ADR-0008).
+## `user_blocks`
 
-## `conversations` — ADR-0008, ADR-0009
-| Column | Type | Constraints | Notes |
-|---|---|---|---|
-| `id` | UUID | PK, generated | |
-| `type` | varchar(10) | not null | `DIRECT` \| `GROUP` |
-| `name` | varchar(100) | nullable | required at service layer when `GROUP`; null for `DIRECT` |
-| `avatar_url` | text | nullable | group photo (FR-16); null for `DIRECT` |
-| `created_by` | UUID | FK → `users.id`, not null | the group's sole admin at creation (ADR-0009) |
-| `created_at` / `updated_at` | timestamp | not null | `updated_at` bumps on new message, membership change, rename |
+`blocker_id`, `blocked_id`, `created_at`; PK/unique pair; check users differ. Blocking is directional and evaluated live for request, presence, and direct-message authorization.
 
-One table for both direct and group conversations — a direct conversation
-is a `GROUP`-shaped row with exactly 2 participants and `name = null`, so
-`messages`/`message_reactions`/`message_read_receipts` never need a
-separate code path per conversation type.
+## `conversations`
 
-**Service-layer constraint**: don't create a duplicate `DIRECT`
-conversation between the same two users — look up an existing one first.
+`id`, `type DIRECT|GROUP`, nullable group `name`/`avatar_object_key`, `direct_key` unique for unordered pair, `status ACTIVE|CLOSED`, `closed_at`, `closed_by`, `close_reason`, `created_by` nullable for legacy/system cases, `latest_message_id`, timestamps. Direct conversations cannot be closed through group administration.
 
-## `conversation_participants` — ADR-0009, ADR-0011
-| Column | Type | Constraints | Notes |
-|---|---|---|---|
-| `conversation_id` | UUID | PK (composite), FK → `conversations.id` | |
-| `user_id` | UUID | PK (composite), FK → `users.id` | |
-| `role` | varchar(10) | not null, default `MEMBER` | only meaningful for `GROUP` |
-| `last_read_message_id` | UUID | FK → `messages.id`, nullable | drives unread-count badge (ADR-0011); must only move forward |
-| `joined_at` | timestamp | not null | also determines auto-promotion order on admin departure (ADR-0009) |
-| `left_at` | timestamp | nullable | non-null once left/removed; row kept so history correctly shows who was present at the time |
+## `conversation_participants`
 
-**Index needed**: `(user_id)` for "list all conversations this user is
-in" (loaded on every login).
+`conversation_id`, `user_id`, `role MEMBER|ADMIN`, `joined_at`, `left_at`, `last_read_message_id`. Unique active membership per user/conversation. Group operations preserve exactly one current admin under the existing single-admin ADR; direct participants always use `MEMBER`.
 
-## `messages` — ADR-0012
-| Column | Type | Constraints | Notes |
-|---|---|---|---|
-| `id` | UUID | PK, generated | |
-| `conversation_id` | UUID | FK → `conversations.id`, not null | |
-| `sender_id` | UUID | FK → `users.id`, not null | |
-| `content` | text | not null | overwritten on edit/delete (ADR-0012); can be empty string if the message is attachment-only |
-| `search_vector` | tsvector | generated, not null | `GENERATED ALWAYS AS (to_tsvector('simple', content)) STORED`; powers FR-28 search (ADR-0015). Regenerates automatically on `content` change (edit/delete), so a deleted message's cleared content naturally drops out of search results. |
-| `created_at` | timestamp | not null | ordering + pagination cursor |
-| `edited_at` | timestamp | nullable | |
-| `deleted_at` | timestamp | nullable | |
+## `messages`
 
-**Index needed**: `(conversation_id, created_at)` for history (FR-14);
-**GIN index on `search_vector`** for search (FR-28, ADR-0015).
-**Pagination**: cursor-based on `(created_at, id)`, not offset-based —
-avoids degradation as history grows under concurrent inserts.
+`id`, `conversation_id`, `sender_id`, `client_message_id`, nullable `content`, `edited_at`, user-recall `deleted_at`, moderation fields `moderated_at`, `moderated_by`, `moderation_reason`, `created_at`, generated/stored `search_vector`. Unique `(sender_id,client_message_id)` supports idempotency. FTS excludes recalled/moderated bodies.
 
-## `message_attachments` — ADR-0003
-| Column | Type | Constraints | Notes |
-|---|---|---|---|
-| `id` | UUID | PK, generated | |
-| `message_id` | UUID | FK → `messages.id`, not null | one message can have 0..N attachments |
-| `object_key` | text | unique, not null | immutable path in the private Supabase Storage bucket; never expose a permanent public URL |
-| `file_name` | varchar(255) | not null | original filename, for display/download |
-| `mime_type` | varchar(100) | not null | used client-side to decide image-preview vs generic file icon |
-| `size_bytes` | bigint | not null | enforced ≤ NFR-5's 10MB cap at upload time, stored for display |
-| `created_at` | timestamp | not null | |
+## `message_attachments`
 
-## `message_reactions` — ADR-0013
-| Column | Type | Constraints | Notes |
-|---|---|---|---|
-| `message_id` | UUID | PK (composite), FK → `messages.id` | |
-| `user_id` | UUID | PK (composite), FK → `users.id` | |
-| `emoji` | varchar(32) | not null | stores the emoji character/shortcode; reacting again updates this row (ADR-0013), doesn't insert a second one |
-| `created_at` | timestamp | not null | updated on emoji change |
+`id`, optional `message_id` until finalized, `uploader_id`, immutable `object_key`, `file_name`, `mime_type`, `size_bytes <= 10MB`, checksum, `status PENDING|READY|DELETED`, timestamps. No permanent public URL is stored. Orphan pending uploads are cleaned by scheduled job.
 
-## `message_read_receipts` — ADR-0010
-| Column | Type | Constraints | Notes |
-|---|---|---|---|
-| `message_id` | UUID | PK (composite), FK → `messages.id` | |
-| `user_id` | UUID | PK (composite), FK → `users.id` | the reader, never the sender |
-| `seen_at` | timestamp | not null | first time this user saw this message |
+## `message_reactions`
 
-See ADR-0010 for why this coexists with, and is not replaced by,
-`conversation_participants.last_read_message_id` (ADR-0011) — they answer
-different questions (who exactly saw a message, vs. how many are unread).
+`message_id`, `user_id`, `emoji`, timestamps; unique `(message_id,user_id)` because one reaction per user/message replaces the prior emoji.
 
-## `push_subscriptions` — ADR-0016
-| Column | Type | Constraints | Notes |
-|---|---|---|---|
-| `id` | UUID | PK, generated | |
-| `user_id` | UUID | FK → `users.id`, not null | one user can have several rows (multiple browsers/devices) |
-| `endpoint` | text | unique, not null | the browser push service URL for this subscription |
-| `p256dh_key` | text | not null | subscription's public key, for payload encryption |
-| `auth_key` | text | not null | subscription's auth secret, for payload encryption |
-| `created_at` | timestamp | not null | |
-| `last_used_at` | timestamp | nullable | updated on each successful push send; a send failure (410 Gone from the push service, meaning the browser invalidated it) should delete the row rather than retry it |
+## `message_read_receipts`
 
----
+`message_id`, `user_id`, `seen_at`; unique pair. A denormalized participant last-read pointer supports unread counts while detailed rows support per-person seen status.
 
-## Migration tooling
-`ddl-auto=update` is fine for solo dev, but with 11 tables and several FKs/
-constraints, hand-written Flyway migrations should be added **before**
-implementation starts, not retrofitted after — a blocking prerequisite,
-not a someday item.
+## `push_subscriptions`
+
+`id`, `user_id`, `endpoint` unique, encrypted/secret subscription keys, `created_at`, `last_success_at`. A `410 Gone` response deletes the row.
+
+## `reports`
+
+`id`, `reporter_id`, `target_type USER|MESSAGE|GROUP`, exactly one of `target_user_id|target_message_id|target_conversation_id`, `reason`, `description`, `status OPEN|IN_REVIEW|RESOLVED|REJECTED`, `assigned_to`, `outcome`, `resolution_summary`, `claimed_at`, `resolved_at`, timestamps. Partial unique index prevents the same reporter/target having more than one `OPEN|IN_REVIEW` report.
+
+## `report_evidence`
+
+One immutable row per report: `report_id` unique, `schema_version`, `evidence_jsonb`, `content_hash`, `captured_at`. Payload is versioned and minimized; it never contains a signed URL or reporter-secret metadata.
+
+## `report_comments`
+
+`id`, `report_id`, `author_id`, `visibility REPORTER_VISIBLE|STAFF_ONLY`, `body`, `created_at`. Comments are append-only. A reporter may add only `REPORTER_VISIBLE` clarification while the report is `OPEN`.
+
+## `notifications`
+
+`id`, `user_id`, `type`, safe `title`, safe `body`, optional structured `payload_jsonb`, `deduplication_key`, `read_at`, `created_at`, `expires_at`. Indexed `(user_id,read_at,created_at desc)`.
+
+## `admin_audit_logs`
+
+`id`, `actor_user_id`, `action`, `target_type`, `target_id`, `reason`, `request_id`, `ip_hash`, `user_agent_hash`, selected `before_jsonb`, selected `after_jsonb`, `created_at`. Append-only: no update/delete application API. Evidence reads are also recorded as audit actions.
+
+## Delete and retention behavior
+
+Historical chat/report/audit rows are not cascade-deleted with users. Account completion anonymizes PII and removes profile objects. Reports/evidence/audit retain 365 days; notifications 180 days. Full policy is in `data-retention.md`.
+
+## Migration rules
+
+- Flyway versioned migrations are immutable after deployment.
+- Schema changes are reviewed with application and rollback/forward-fix strategy.
+- Empty PostgreSQL must migrate to latest in CI/Testcontainers.
+- JPA mappings must validate against the migrated schema.

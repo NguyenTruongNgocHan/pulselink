@@ -1,7 +1,6 @@
 # Functional Requirements
 
-All items below are ⬜ **Not started** — the repository currently contains
-no business logic (verified 2026-07-17). Numbered so ADRs/code/tests can
+Items below define the approved product baseline. Implementation status is tracked in the implementation plan, not in the requirement wording. Numbered so ADRs/code/tests can
 reference them (e.g. "implements FR-12"). Expanded 2026-07-17 (round 2):
 message search, push notifications, admin hand-off.
 
@@ -68,23 +67,63 @@ message search, push notifications, admin hand-off.
 | FR-30 | Unread count clears when the conversation is opened and messages are read. |
 | FR-31 | Receive a browser push notification for a new message when not actively connected (tab closed/backgrounded), given notification permission was granted. |
 
-## Traceability
-- FR-1–5 (account) are the prerequisite for everything else.
-- FR-6–11 (friends) exist because messaging is friend-gated (ADR-0008) —
-  a user must be an accepted friend before FR-12 applies.
-- FR-12–15 (direct messaging) is the core value proposition, and comes
-  before group chat, which builds on the same message/attachment model.
-- FR-16–21 (groups) depend on FR-12–15's message model. FR-20/21
-  (admin transfer/succession) are last within this group because they're
-  an edge-case management concern on top of a group that must already
-  exist — see ADR-0009 for the full succession algorithm, added in this
-  revision after a scenario walkthrough surfaced the need for explicit
-  transfer, not just automatic succession.
-- FR-22–24 (presence) depend on messages/conversations already existing.
-- FR-25–27 (edit/delete/react) are message-level enhancements.
-- FR-28 (search) depends on messages already existing to search over —
-  correctly sequenced after the core message model, per ADR-0015.
-- FR-29–31 (notifications) depend on FR-24's read-tracking (ADR-0011 for
-  unread counts) and, for FR-31, on knowing whether a user is connected
-  (ADR-0014 presence) to decide whether a push is even needed — see
-  ADR-0016.
+## Reporting & User Safety
+| ID | Requirement |
+|---|---|
+| FR-32 | Report a user, message, or group using a standardized reason and optional description; `OTHER` requires a description. |
+| FR-33 | Capture an immutable, minimized evidence snapshot when a report is submitted so later deletion cannot erase the moderation basis. |
+| FR-34 | Prevent the same reporter from creating duplicate open reports against the same target. |
+| FR-35 | View the caller's submitted reports and their public status without exposing internal staff notes or identities. |
+| FR-36 | Add clarification to the caller's report while it is still `OPEN`; clarification is immutable once submitted. |
+
+## In-App Notifications
+| ID | Requirement |
+|---|---|
+| FR-37 | Receive an in-app notification for account-security and moderation events (warning, suspension, ban, profile reset, report resolution, group closure). |
+| FR-38 | List notifications with cursor pagination and an unread count. |
+| FR-39 | Mark one notification or all notifications as read. |
+
+## Administration Portal — Access & Dashboard
+| ID | Requirement |
+|---|---|
+| FR-40 | A user with `MODERATOR`, `ADMIN`, or `SUPER_ADMIN` system role can enter a protected administration portal; ordinary users cannot discover or access its routes or APIs. |
+| FR-41 | Authorized staff can view operational dashboard cards for users, active users, conversations, messages, open reports, suspended/banned users, and recent moderation workload. |
+
+## Administration Portal — User Management
+| ID | Requirement |
+|---|---|
+| FR-42 | Authorized staff can search/filter users by email, username, role, account status, and creation date with stable pagination. |
+| FR-43 | Authorized staff can view a user's safe profile, account status/history, session summary, reports, and moderation history without seeing passwords, raw tokens, or arbitrary private messages. |
+| FR-44 | A moderator or higher can suspend a lower-privileged user until a specified time, with a mandatory reason; all sessions are revoked immediately. |
+| FR-45 | An admin or higher can ban/unban a lower-privileged user with a mandatory reason; all sessions are revoked immediately. |
+| FR-46 | A moderator or higher can force logout all sessions for a lower-privileged user. |
+| FR-47 | A moderator or higher can reset a violating display name and/or avatar to a safe default, with notification and audit. |
+| FR-48 | Only a super administrator can assign system roles; no staff member may act on an equal/higher role, self-promote, or remove the last active super administrator. |
+
+## Administration Portal — Reports & Moderation
+| ID | Requirement |
+|---|---|
+| FR-49 | Moderators can list, filter, claim, and transition reports through `OPEN → IN_REVIEW → RESOLVED|REJECTED`. |
+| FR-50 | During review, staff can view the immutable evidence and, for a reported message, at most five messages before and five after it; arbitrary private-conversation browsing is forbidden. |
+| FR-51 | Staff can resolve a report with `NO_ACTION`, `WARNING`, `CONTENT_REMOVED`, `USER_SUSPENDED`, `USER_BANNED`, or `GROUP_CLOSED`, subject to role authority. |
+| FR-52 | Administrative content removal is distinct from user recall and records moderator, timestamp, and reason while preserving a tombstone for participants. |
+
+## Administration Portal — Group Operations & Audit
+| ID | Requirement |
+|---|---|
+| FR-53 | Authorized staff can search groups and inspect metadata and active membership without unrestricted access to message history. |
+| FR-54 | An admin or higher can close or reopen a group with a mandatory reason; a closed group preserves history but blocks new messages and membership changes. |
+| FR-55 | An admin or higher can query an immutable, filterable audit log of privileged actions. |
+| FR-56 | Every privileged mutation records actor, action, target, mandatory reason, request/correlation ID, timestamp, IP/user-agent hashes, and selected before/after state. |
+
+## Requirement dependency trace
+- FR-1–5 establish identity/profile; FR-6–11 establish the social boundary.
+- FR-12–31 retain the original messaging, group, presence, lifecycle, search, unread, and Web Push baseline.
+- FR-32–36 add user reporting and evidence creation; they precede portal moderation because the portal consumes those reports.
+- FR-37–39 provide the user-visible channel for moderation/account outcomes.
+- FR-40–41 establish staff access and operational overview.
+- FR-42–48 define account administration and role hierarchy.
+- FR-49–52 define report workflow, privacy-bounded evidence access, and moderation outcomes.
+- FR-53–54 define group-level system administration independently from group-admin membership powers in FR-18–21.
+- FR-55–56 make privileged operations reviewable and are cross-cutting dependencies of FR-44–54.
+- The normative row-by-row mapping is in `traceability-matrix.md`; permission rules are in `../architecture/authorization-model.md`.

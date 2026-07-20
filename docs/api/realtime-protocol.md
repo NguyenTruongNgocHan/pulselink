@@ -1,4 +1,4 @@
-# Real-Time Protocol — STOMP over WebSocket (Design, ⬜ Not Yet Implemented)
+# Real-Time Protocol — STOMP over WebSocket (Design, Design)
 
 Implements ADR-0007 (transport), ADR-0010/0011 (receipts/unread), ADR-
 0013 (reactions), ADR-0014 (presence). Covers FR-15, FR-17, FR-20..27, FR-29..31.
@@ -33,7 +33,7 @@ Triggered by the REST endpoints (`messaging-api.md`), pushed live:
 ```
 
 ## Group admin change (ADR-0009)
-Triggered by `POST /api/conversations/{id}/admin-transfer` or by the
+Triggered by `POST /api/v1/conversations/{id}/admin-transfer` or by the
 automatic succession that runs when an admin leaves — pushed to
 `/topic/conversations/{id}`:
 ```json
@@ -90,7 +90,7 @@ party (NFR-11) — enforced at the publish step, not just the UI.
 A malformed frame, sending to a conversation the user isn't in, or an
 expired token mid-connection → a STOMP `ERROR` frame to that client only
 (never broadcast). Expired/invalid token → connection closed; client
-refreshes (`POST /api/auth/refresh`) and reconnects.
+refreshes (`POST /api/v1/auth/refresh`) and reconnects.
 
 ## What this design deliberately does not solve yet
 - Multi-instance broadcast (ADR-0007's named future trigger).

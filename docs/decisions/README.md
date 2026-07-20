@@ -1,0 +1,28 @@
+# Architecture Decision Record Index
+
+- [ADR-0000-modular-monolith.md](ADR-0000-modular-monolith.md) — ADR-0000: Modular monolith, not microservices
+- [ADR-0001-monorepo-structure.md](ADR-0001-monorepo-structure.md) — ADR-0001: Monorepo with `apps/api` + `apps/web`
+- [ADR-0002-database-postgres-supabase.md](ADR-0002-database-postgres-supabase.md) — ADR-0002: PostgreSQL as the database, hostable on Supabase
+- [ADR-0003-attachment-storage-supabase.md](ADR-0003-attachment-storage-supabase.md) — ADR-0003: Private Supabase Storage for message attachments
+- [ADR-0004-custom-jwt-vs-managed-auth.md](ADR-0004-custom-jwt-vs-managed-auth.md) — ADR-0004: Hand-rolled Spring Security + JWT, not a managed auth provider
+- [ADR-0005-refresh-token-rotation.md](ADR-0005-refresh-token-rotation.md) — ADR-0005: Opaque, DB-backed, rotating refresh tokens
+- [ADR-0006-docker-compose-orchestration.md](ADR-0006-docker-compose-orchestration.md) — ADR-0006: Docker Compose for local orchestration (not Kubernetes)
+- [ADR-0007-realtime-transport-stomp.md](ADR-0007-realtime-transport-stomp.md) — ADR-0007: STOMP over WebSocket (with SockJS fallback)
+- [ADR-0008-friend-system.md](ADR-0008-friend-system.md) — ADR-0008: Friend-gated messaging with a dedicated friendship system
+- [ADR-0009-group-role-model.md](ADR-0009-group-role-model.md) — ADR-0009: Single-admin group role model, with explicit hand-off + succession
+- [ADR-0010-unified-read-receipts.md](ADR-0010-unified-read-receipts.md) — ADR-0010: Unified per-participant read receipts (direct + group)
+- [ADR-0011-unread-count-last-read-pointer.md](ADR-0011-unread-count-last-read-pointer.md) — ADR-0011: A separate last-read pointer for unread badge counts
+- [ADR-0012-message-edit-delete.md](ADR-0012-message-edit-delete.md) — ADR-0012: In-place edit, soft-delete tombstone
+- [ADR-0013-emoji-reaction-model.md](ADR-0013-emoji-reaction-model.md) — ADR-0013: One reaction per user per message (Messenger-style)
+- [ADR-0014-presence-redis-ttl.md](ADR-0014-presence-redis-ttl.md) — ADR-0014: Redis TTL keys for presence, driven by WebSocket lifecycle
+- [ADR-0015-message-search-postgres-fts.md](ADR-0015-message-search-postgres-fts.md) — ADR-0015: PostgreSQL native full-text search, not a dedicated search engine
+- [ADR-0016-push-notifications-webpush.md](ADR-0016-push-notifications-webpush.md) — ADR-0016: Web Push API (VAPID), not Firebase Cloud Messaging
+- [ADR-0017-rate-limiting-redis.md](ADR-0017-rate-limiting-redis.md) — ADR-0017: Redis fixed-window counters for rate limiting
+- [ADR-0018-deployment-cicd.md](ADR-0018-deployment-cicd.md) — ADR-0018: Render API + Render Key Value + Vercel web + Supabase, GitHub Actions CI
+- [ADR-0019-testcontainers.md](ADR-0019-testcontainers.md) — ADR-0019: Testcontainers (real Postgres) for integration tests, not H2
+- [ADR-0020-administration-portal.md](ADR-0020-administration-portal.md) — ADR-0020 — Administration Portal in the Existing React App
+- [ADR-0021-system-role-hierarchy.md](ADR-0021-system-role-hierarchy.md) — ADR-0021 — Fixed System Role Hierarchy
+- [ADR-0022-report-moderation-privacy.md](ADR-0022-report-moderation-privacy.md) — ADR-0022 — Report-Scoped Moderation and Privacy Boundary
+- [ADR-0023-admin-audit-log.md](ADR-0023-admin-audit-log.md) — ADR-0023 — Append-Only Administration Audit Log
+- [ADR-0024-account-lifecycle.md](ADR-0024-account-lifecycle.md) — ADR-0024 — Account Lifecycle and Anonymizing Deactivation
+- [ADR-0025-in-app-notifications.md](ADR-0025-in-app-notifications.md) — ADR-0025 — In-App Moderation and Account Notifications

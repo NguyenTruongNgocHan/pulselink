@@ -1,12 +1,12 @@
-# API Reference — Auth (Design, ⬜ Not Yet Implemented)
+# API Reference — Auth (Design, Design)
 
-Base path: `/api/auth`. No `Authorization` header required (these
+Base path: `/api/v1/auth`. No `Authorization` header required (these
 endpoints are how you *get* a token). Errors follow the shared shape:
 ```json
 { "timestamp": "...", "status": 409, "error": "Conflict", "message": "...", "details": [] }
 ```
 
-### `POST /api/auth/register`
+### `POST /api/v1/auth/register`
 ```json
 { "email": "alice@example.com", "username": "alice", "password": "at-least-8-chars" }
 ```
@@ -17,14 +17,14 @@ endpoints are how you *get* a token). Errors follow the shared shape:
 ```
 Errors: `409` email/username taken, `400` validation.
 
-### `POST /api/auth/login`
+### `POST /api/v1/auth/login`
 ```json
 { "email": "alice@example.com", "password": "..." }
 ```
 `200 OK` → same shape as register. Errors: `401` (generic — doesn't
 reveal whether the email exists).
 
-### `POST /api/auth/refresh`
+### `POST /api/v1/auth/refresh`
 ```json
 { "refreshToken": "..." }
 ```
@@ -32,14 +32,14 @@ reveal whether the email exists).
 0005 — old one is now invalid). Errors: `401` not recognized/expired/
 already used.
 
-### `POST /api/auth/logout`
+### `POST /api/v1/auth/logout`
 ```json
 { "refreshToken": "..." }
 ```
 `204 No Content`. Revokes the refresh token; any still-valid access token
 remains usable until its own (≤15min) expiry — no access-token blocklist.
 
-### `PATCH /api/auth/me`
+### `PATCH /api/v1/auth/me`
 ```json
 { "displayName": "Alice B.", "avatarUrl": "https://..." }
 ```

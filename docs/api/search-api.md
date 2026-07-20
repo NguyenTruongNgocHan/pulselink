@@ -1,8 +1,8 @@
-# API Reference — Search (Design, ⬜ Not Yet Implemented)
+# API Reference — Search (Design, Design)
 
 Implements FR-28, ADR-0015. Requires `Authorization: Bearer`.
 
-### `GET /api/search/messages?q=keyword&conversationId=optional&cursor=...&limit=20`
+### `GET /api/v1/search/messages?q=keyword&conversationId=optional&cursor=...&limit=20`
 Full-text search across the caller's own message history.
 - `q` (required): search keywords, matched via Postgres `plainto_tsquery`/
   `websearch_to_tsquery` against `messages.search_vector`.
