@@ -1,44 +1,32 @@
+import { useState } from 'react'
 import { Link } from 'react-router-dom'
 
-import { Icon } from '../components/ui/Icon'
+import { Icon } from '../../components/ui/Icon'
 import { AuthLayout } from './AuthLayout'
 
-export function RegisterPage() {
+export function LoginPage() {
+  const [showPassword, setShowPassword] = useState(false)
+
   return (
-    <AuthLayout mode="register">
+    <AuthLayout mode="login">
       <div className="auth-card">
         <div className="auth-heading">
           <span className="kicker">
-            Create account
+            Sign in
           </span>
 
-          <h2>Join pulselink</h2>
+          <h2>Welcome back</h2>
 
           <p>
-            Start your private social space in less than a minute.
+            Enter your details to continue to pulselink.
           </p>
         </div>
 
         <form
-          className="form compact-form"
+          className="form"
           onSubmit={(event) => event.preventDefault()}
         >
-          <label htmlFor="name">
-            User name
-          </label>
-
-          <div className="input-wrap">
-            <Icon name="user" size={18} />
-
-            <input
-              id="name"
-              name="name"
-              autoComplete="name"
-              placeholder="Jane Smith"
-            />
-          </div>
-
-          <label htmlFor="register-email">
+          <label htmlFor="email">
             Email address
           </label>
 
@@ -46,7 +34,7 @@ export function RegisterPage() {
             <Icon name="mail" size={18} />
 
             <input
-              id="register-email"
+              id="email"
               name="email"
               type="email"
               autoComplete="email"
@@ -54,44 +42,52 @@ export function RegisterPage() {
             />
           </div>
 
-          <label htmlFor="register-password">
-            Password
-          </label>
+          <div className="label-row">
+            <label htmlFor="password">
+              Password
+            </label>
+
+            <Link to="/forgot-password">
+              Forgot password?
+            </Link>
+          </div>
 
           <div className="input-wrap">
             <Icon name="lock" size={18} />
 
             <input
-              id="register-password"
+              id="password"
               name="password"
-              type="password"
-              autoComplete="new-password"
-              placeholder="At least 8 characters"
+              type={showPassword ? 'text' : 'password'}
+              autoComplete="current-password"
+              placeholder="Enter your password"
             />
+
+            <button
+              className="input-action"
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              aria-label="Toggle password visibility"
+            >
+              <Icon name="eye" size={18} />
+            </button>
           </div>
 
           <label className="check-row">
             <input type="checkbox" />
-
-            <span>
-              I agree to the{' '}
-              <a href="#terms">
-                Terms
-              </a>{' '}
-              and{' '}
-              <a href="#privacy">
-                Privacy Policy
-              </a>
-              .
-            </span>
+            <span>Keep me signed in</span>
           </label>
 
           <button
             className="primary-button"
             type="submit"
           >
-            Create account
+            Sign in
           </button>
+
+          <div className="divider">
+            <span>or</span>
+          </div>
 
           <button
             className="secondary-button"
@@ -103,9 +99,9 @@ export function RegisterPage() {
         </form>
 
         <p className="auth-switch">
-          Already have an account?{' '}
-          <Link to="/login">
-            Sign in
+          New to pulselink?{' '}
+          <Link to="/register">
+            Create an account
           </Link>
         </p>
       </div>

@@ -1,9 +1,9 @@
 import type { ReactNode } from 'react'
 import { Link } from 'react-router-dom'
 
-import { Brand } from '../components/ui/Brand'
-import { Icon } from '../components/ui/Icon'
-import { ThemeControl } from '../theme'
+import { Brand } from '../../components/ui/Brand'
+import { Icon } from '../../components/ui/Icon'
+import { ThemeControl } from '../../theme'
 
 type AuthLayoutProps = {
   mode: 'login' | 'register'
