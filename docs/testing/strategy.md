@@ -124,3 +124,22 @@ Backend tests run in the GitHub Actions backend job (`mvn test`); frontend tests
 `architecture/deployment.md` — a test suite that isn't run automatically
 on every change isn't really a safety net, so this isn't optional tooling
 sitting alongside the pipeline; it's a required, blocking stage of it.
+
+
+## Administration portal additions
+
+### Backend unit/integration priority
+- Staff hierarchy (equal/higher denial, self-promotion denial, last-super-admin invariant).
+- Account state transitions, expiry, token/session revocation.
+- Report duplicate prevention and legal workflow transitions.
+- Immutable evidence capture and bounded five-before/five-after query.
+- Outcome authority (`MODERATOR` cannot ban/close group).
+- Distinction between user recall and moderation removal.
+- Closed-group enforcement across REST and WebSocket.
+- Audit row written with every privileged mutation; failure rolls back the operation where transactionally coupled.
+
+### Frontend minimum
+Vitest + React Testing Library cover admin route guards, role-based action visibility, dashboard loading/error, URL-preserved directory filters, report claim/review/resolve states, mandatory-reason confirmation, group closed state, and audit filters. Hidden buttons are not treated as security proof.
+
+### Required browser E2E before demo release
+Playwright must cover: user reports a message → moderator claims and removes it → reporter receives notification; moderator is denied ban; admin bans lower-role user and sessions stop working; super admin role change obeys hierarchy; admin closes group and members can read history but cannot send.

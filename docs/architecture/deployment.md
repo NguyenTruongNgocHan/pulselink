@@ -81,3 +81,8 @@ Never committed — enforced by the existing `.gitignore` rule
 - No end-to-end (browser-level) Playwright stage in CI yet; critical React components and state are still covered by Vitest/React Testing Library — see
   `../testing/strategy.md` for why that's called out as a deliberate,
   later addition.
+
+
+## Administration portal deployment/security
+
+The portal ships in the same static web artifact but is route-level lazy-loaded. CDN/static hosting is not a trust boundary. `/api/v1/admin/**` is protected by Spring Security and domain authorization. Production secrets include an initial super-admin bootstrap mechanism that is disabled after provisioning; no default password is committed. Admin actions and evidence reads emit structured audit/security metrics without sensitive content.

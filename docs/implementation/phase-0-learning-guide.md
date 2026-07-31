@@ -35,9 +35,9 @@ Phase 0 does not implement product features. It creates a reliable workspace in 
 ## Files worth reading first
 
 1. `docker-compose.yml`
-2. `apps/api/pom.xml`
-3. `apps/api/src/main/resources/application.yml`
-4. `apps/api/src/main/java/com/pulselink/shared/config/SecurityConfig.java`
+2. `apps/api/v1/pom.xml`
+3. `apps/api/v1/src/main/resources/application.yml`
+4. `apps/api/v1/src/main/java/com/pulselink/shared/config/SecurityConfig.java`
 5. `apps/web/src/main.tsx`
 6. `apps/web/src/app/App.tsx`
 7. `.github/workflows/ci.yml`

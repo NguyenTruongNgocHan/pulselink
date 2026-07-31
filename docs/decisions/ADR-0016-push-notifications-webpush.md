@@ -13,7 +13,7 @@ Use the standards-based **Web Push API** with VAPID (Voluntary
 Application Server Identification) keys — no third-party push vendor.
 Flow: the client's service worker registers a push subscription
 (endpoint + encryption keys) with the browser's push service, sends that
-subscription to the API (`POST /api/push/subscriptions`, see
+subscription to the API (`POST /api/v1/push/subscriptions`, see
 `push-api.md`), and the API stores it in `push_subscriptions`. When a
 message is created (per `realtime-protocol.md`'s send flow) and the
 recipient has no active presence (ADR-0014's `isOnline()` check), the API

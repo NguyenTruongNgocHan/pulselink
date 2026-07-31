@@ -9,10 +9,12 @@ the map the implementation will follow.
 ```mermaid
 flowchart TB
     User(("End user<br/>(browser)"))
+    Staff(("Moderator / Administrator<br/>(browser)"))
     PulseLink["PulseLink"]
     Storage[("Supabase Storage<br/>(attachment files)")]
 
     User -->|"HTTPS + WSS"| PulseLink
+    Staff -->|"HTTPS + WSS (protected /admin)"| PulseLink
     User -->|"fetch attachment (short-lived signed URL)"| Storage
     PulseLink -->|"upload on send"| Storage
 ```
@@ -31,10 +33,12 @@ flowchart TB
         Msg["message module<br/>(FR-12..21, FR-24..30)"]
         Presence["presence module<br/>(FR-22..23; supports FR-31)"]
         Push["push module<br/>(FR-31, ADR-0016)"]
+        Report["report / notification module<br/>(FR-32..39)"]
+        Admin["administration / audit module<br/>(FR-40..56)"]
         RateLimit["rate limiter<br/>(ADR-0017, cross-cutting)"]
     end
 
-    DB[("PostgreSQL<br/>users, friendships, conversations,<br/>messages (+ search_vector), attachments,<br/>reactions, receipts, push_subscriptions")]
+    DB[("PostgreSQL — 16 tables<br/>identity/social/messaging + reports,<br/>evidence, notifications, audit") ]
     Cache[("Redis-compatible store<br/>local Redis / demo Render Key Value<br/>presence + rate-limit counters")]
     Storage[("Supabase Storage<br/>private attachment bucket, ADR-0003")]
     PushSvc[("Browser push service<br/>(e.g. FCM/Mozilla push endpoints)<br/>ADR-0016 — not PulseLink's own infra")]
@@ -45,6 +49,8 @@ flowchart TB
     Web -->|"WebSocket (live delivery, typing, reactions, receipts)"| Msg
     Web -->|"WebSocket (presence events)"| Presence
     Web -->|"register subscription"| Push
+    Web -->|"REST: reports + notifications"| Report
+    Web -->|"protected REST: dashboard/users/reports/groups/audit"| Admin
 
     Auth --> DB
     Friend --> DB
@@ -52,6 +58,8 @@ flowchart TB
     Msg --> Storage
     Presence --> Cache
     Push --> DB
+    Report --> DB
+    Admin --> DB
     Push -->|"encrypted payload"| PushSvc
     PushSvc -->|"delivers to browser, even if closed"| Web
     Msg -.->|"is recipient online? / is sender blocked?"| Presence
@@ -60,6 +68,11 @@ flowchart TB
     RateLimit -.->|"guards"| Auth
     RateLimit -.->|"guards"| Friend
     RateLimit -.->|"guards"| Msg
+    RateLimit -.->|"guards"| Report
+    RateLimit -.->|"guards"| Admin
+    Admin -.->|"commands via application services"| Auth
+    Admin -.->|"commands via application services"| Msg
+    Admin -.->|"report-scoped evidence only"| Report
 ```
 
 Key ties to requirements:
@@ -137,12 +150,49 @@ sequenceDiagram
     Msg-->>Sender: ack (persisted)
 ```
 
+
+
+## Administration portal flow: resolve a reported message
+
+```mermaid
+sequenceDiagram
+    participant Reporter as Reporting user
+    participant Report as report module
+    participant DB as PostgreSQL
+    participant Moderator as Moderator portal
+    participant Admin as administration module
+    participant Msg as message module
+    participant Notify as notification module
+
+    Reporter->>Report: POST /api/v1/reports (MESSAGE target)
+    Report->>DB: persist report + immutable evidence snapshot
+    Moderator->>Admin: claim report
+    Admin->>DB: OPEN → IN_REVIEW + audit
+    Moderator->>Admin: request evidence
+    Admin->>Report: evidence + max 5 before/after
+    Report-->>Moderator: bounded review model
+    Moderator->>Admin: resolve CONTENT_REMOVED (reason)
+    Admin->>Msg: moderation-remove reported message
+    Admin->>Notify: notify affected user/reporter
+    Admin->>DB: outcome + audit + RESOLVED (one transaction)
+```
+
+The administration module does not own user, message, or conversation tables directly. It issues authorized application commands to the owning modules, preserving modular-monolith boundaries and domain invariants.
+
+## Account and group state effects
+
+- Non-`ACTIVE` accounts cannot authenticate or establish WebSocket sessions.
+- `CLOSED` groups remain readable to existing members but reject new messages and membership mutations.
+- User recall (`deleted_at`) and moderator removal (`moderated_at/by/reason`) are separate states.
+- Admin dashboard queries use read projections; they never bypass authorization to expose private content.
+
 ## What this design deliberately does not solve yet
 - Multi-instance WebSocket fan-out (ADR-0007's named future trigger).
 - Retry/dead-letter handling for failed push notifications (ADR-0016).
 - Fuzzy/relevance-ranked search (ADR-0015 — exact keyword matching only).
-- Virus scanning or thumbnailing of uploaded attachments (explicit NFR
-  exclusion).
+- Virus scanning or thumbnailing of uploaded attachments (explicit NFR exclusion).
+- AI moderation, staff impersonation, dynamic RBAC, multi-tenancy, or arbitrary private-message browsing.
+- Kafka/event broker until measured extraction/replay/consumer triggers exist.
 
 See [`deployment.md`](./deployment.md) for how this system reaches the
 outside world (hosting, CI/CD) and [`../testing/strategy.md`](../testing/strategy.md)

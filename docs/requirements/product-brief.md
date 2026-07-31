@@ -23,8 +23,11 @@ Constraints:
 1. **End users** — chat 1-1 or in groups, expect real-time delivery,
    presence, message status, and the ability to control who can message
    them (friends only, with blocking).
-2. **Product owner** — cares about time-to-demo and not being locked into
-   a rewrite if the product grows.
+2. **Moderation staff** — moderators and administrators who protect the community,
+   resolve reports, act on abusive accounts/content, and need every privileged
+   action to be explainable and auditable.
+3. **Product owner** — cares about time-to-demo, safe operations, and not being
+   locked into a rewrite if the product grows.
 
 ## Core user stories
 - As a user, I can create an account, log in, and set up my profile
@@ -48,8 +51,19 @@ Constraints:
 - As a user, I get notified (even if I've closed the app/tab) when I
   receive a new message, so I don't have to keep it open to stay
   reachable.
-- As the product owner, messages must survive a server restart —
-  nothing message-critical lives only in memory.
+- As a user, I can report a user, message, or group and later see a safe,
+  high-level status of that report.
+- As a user, I receive in-app notifications for account and moderation events.
+- As a moderator, I can review a report queue, inspect only the reported evidence
+  plus bounded context, and apply outcomes allowed by my role.
+- As an administrator, I can search users/groups, suspend or ban lower-privileged
+  accounts, close abusive groups, force logout sessions, and review an immutable
+  audit trail.
+- As a super administrator, I can assign staff roles without being able to
+  silently bypass hierarchy or remove the last active super administrator.
+- As the product owner, messages must survive a server restart — nothing
+  message-critical lives only in memory, and every privileged mutation is
+  attributable to an actor and reason.
 
 ## Explicit non-goals (unchanged)
 - No voice/video calling.
@@ -57,6 +71,10 @@ Constraints:
   handling sensitive conversations).
 - No native mobile app — web client only (push notifications are
   delivered via the browser's Web Push API, not a native OS channel).
+- No unrestricted administrator access to private conversations; moderation
+  access is report-scoped and bounded.
+- No dynamic permission editor, user impersonation, AI moderation, billing,
+  multi-tenancy, or support-ticket subsystem in this baseline.
 
 See `functional-requirements.md` and `non-functional-requirements.md` for
 what this translates into, and `../architecture/system-design.md` for how

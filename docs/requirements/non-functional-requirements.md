@@ -104,12 +104,32 @@ target is deliberately modest.
 - **NFR-16**: Every architecturally-significant decision has a
   corresponding ADR in `docs/decisions/`.
 
-## Explicitly out of scope for this stage
+## Administration security & privacy
+- **NFR-29**: System roles are a fixed hierarchy: `USER < MODERATOR < ADMIN < SUPER_ADMIN`; every portal API enforces role and object-level checks server-side.
+- **NFR-30**: Staff cannot mutate an equal/higher-privileged account, self-promote, or remove the last active `SUPER_ADMIN`.
+- **NFR-31**: Every privileged mutation requires a non-blank reason and creates an append-only audit record; an operation must not succeed silently without its audit record.
+- **NFR-32**: Staff cannot browse arbitrary private conversations. A message report exposes only its evidence snapshot and at most five preceding/five following messages, and each evidence access is audited.
+- **NFR-33**: Report responses never expose reporter identity to the reported user/group or expose staff-only notes to the reporter.
+- **NFR-34**: Administration routes and bundles are lazy-loaded and hidden from ordinary navigation; this is UX only and never replaces server authorization.
+- **NFR-35**: Privileged endpoints use stricter rate limits than ordinary reads and return `429` with `Retry-After`.
+
+## Account lifecycle & retention
+- **NFR-36**: Account states are `ACTIVE`, `SUSPENDED`, `BANNED`, `DEACTIVATION_PENDING`, `DEACTIVATED`; non-active accounts cannot create new authenticated REST/WebSocket sessions.
+- **NFR-37**: User-requested deactivation has a **30-day grace period**. Completion anonymizes personally identifying profile fields and removes private avatar objects while preserving conversation integrity.
+- **NFR-38**: Closed reports/evidence and admin audit records are retained for at least **365 days** in the baseline; in-app notifications are retained for **180 days**.
+- **NFR-39**: Raw refresh tokens, access tokens, signed URLs, passwords, report evidence bodies, and private message bodies are never written to application logs.
+
+## Administration usability, observability & tests
+- **NFR-40**: Admin directory/report endpoints return within **500ms p95** under NFR-4 load, excluding intentionally bounded evidence retrieval.
+- **NFR-41**: Portal tables use stable pagination/filtering and preserve filters in the URL so review state is reproducible and shareable among authorized staff.
+- **NFR-42**: Core user UI targets WCAG 2.1 AA from 360px upward; administration UI targets keyboard-accessible tablet/desktop layouts from 768px upward, with visible focus and reduced-motion support.
+- **NFR-43**: Backend integration/security tests cover every role boundary, staff hierarchy, report transition, bounded-context query, group-close state, and audit write.
+- **NFR-44**: Frontend Vitest/React Testing Library coverage includes admin route guards, permission-based actions, report queue/review states, user/group management confirmations, and audit filters; Playwright critical admin journeys are required before demo release.
+
+## Explicitly out of scope for this baseline
 - Horizontal scaling / multi-instance WebSocket fan-out.
-- Observability/monitoring dashboard (structured logging only).
-- Virus/malware scanning on uploaded attachments.
-- CDN/image transcoding for attachments.
-- Retry/dead-letter handling for failed push notifications (NFR-24).
-- Fuzzy/typo-tolerant search relevance ranking (FR-28 is exact/prefix
-  keyword matching via Postgres full-text search, not a dedicated search
-  engine's relevance model — see ADR-0015).
+- AI moderation or automated policy decisions.
+- Unrestricted administrator access to private conversations.
+- Dynamic RBAC/permission editor, staff impersonation, multi-tenancy, billing, and support tickets.
+- Virus/malware scanning and media transcoding (named production hardening items).
+- Kafka/event-broker infrastructure until durable replay, independent consumers, or service extraction creates a measured need.
