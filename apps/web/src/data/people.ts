@@ -1,4 +1,4 @@
-import type { Person } from "../domain/models";
+import type { Person } from "../shared/types/domain";
 
 export const people: Person[] = [
   {

@@ -1,4 +1,4 @@
-import type { ConversationSummary } from "../domain/models";
+import type { ConversationSummary } from "../shared/types/domain";
 
 export const conversations: ConversationSummary[] = [
   {
