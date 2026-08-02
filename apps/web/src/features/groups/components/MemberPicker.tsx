@@ -1,4 +1,5 @@
 import { Avatar } from '@/components/ui/Avatar'
+import { Icon } from '@/components/ui/Icon'
 import type { Person } from '@/features/people/types/people.types'
 import { SearchInput } from '@/shared/components/form/SearchInput'
 import { getInitials } from '@/shared/utils/avatar'
@@ -21,54 +22,84 @@ export function MemberPicker({
   onToggle,
 }: MemberPickerProps) {
   return (
-    <section className="friend-picker">
-      <header>
+    <section className="group-member-picker">
+      <header className="group-member-picker__header">
         <div>
           <span className="eyebrow">Invite your circle</span>
           <h2>Add friends</h2>
+          <p>Select the people who should be part of this group.</p>
         </div>
-        <span className="selected-count">✓ {selectedIds.length} selected</span>
+
+        <span className="group-member-picker__count">
+          {selectedIds.length} selected
+        </span>
       </header>
 
-      <div className="notice">
-        <span>You will be the group admin. You can transfer this role later.</span>
+      <div className="group-member-picker__search">
+        <SearchInput
+          label="Search friends"
+          value={query}
+          onChange={(event) => onQueryChange(event.target.value)}
+          onClear={() => onQueryChange('')}
+          placeholder="Search friends"
+        />
       </div>
 
-      <SearchInput
-        label="Search friends"
-        value={query}
-        onChange={(event) => onQueryChange(event.target.value)}
-        onClear={() => onQueryChange('')}
-        placeholder="Search friends"
-      />
+      <div className="group-member-picker__notice">
+        <Icon name="shield" size={17} />
+        <span>
+          <b>You will be the first admin.</b>
+          <small>The role can be transferred later.</small>
+        </span>
+      </div>
 
-      <div className="member-picker-list" aria-busy={isLoading}>
+      <div className="group-member-picker__list" aria-busy={isLoading}>
         {people.map((person) => {
           const selected = selectedIds.includes(person.id)
+
           return (
             <button
               type="button"
-              className={selected ? 'member-picker-row selected' : 'member-picker-row'}
+              className={
+                selected
+                  ? 'group-member-picker__row selected'
+                  : 'group-member-picker__row'
+              }
               onClick={() => onToggle(person.id)}
               key={person.id}
               aria-pressed={selected}
             >
-              <span className="checkbox" aria-hidden="true">
-                {selected ? '✓' : ''}
+              <span className="group-member-picker__checkbox" aria-hidden="true">
+                {selected ? <Icon name="check" size={14} /> : null}
               </span>
+
               <Avatar
                 initials={getInitials(person.displayName)}
                 tone="violet"
                 online={person.isOnline}
               />
-              <span>
+
+              <span className="group-member-picker__identity">
                 <b>{person.displayName}</b>
                 <small>@{person.username}</small>
               </span>
-              <em>{selected ? 'Selected' : 'Add'}</em>
+
+              <span className="group-member-picker__state">
+                {selected ? 'Selected' : 'Add'}
+              </span>
             </button>
           )
         })}
+
+        {!isLoading && people.length === 0 ? (
+          <div className="group-member-picker__empty">
+            <Icon name="search" size={22} />
+            <span>
+              <b>No friends found</b>
+              <small>Try another name or username.</small>
+            </span>
+          </div>
+        ) : null}
       </div>
     </section>
   )

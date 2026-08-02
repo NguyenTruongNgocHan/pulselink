@@ -45,41 +45,64 @@ export function CreateGroupPage() {
 
   const handleCreate = async () => {
     if (!canCreate) return
+
     const group = await createGroupMutation.mutateAsync({
       name: name.trim(),
       memberIds: selectedIds,
     })
+
     navigate(routes.conversation(group.id))
   }
 
   return (
-    <main className="create-group">
-      <section className="create-summary">
+    <main className="group-create-page">
+      <section className="group-create-summary">
         <button
           type="button"
-          className="back-link"
+          className="group-back-button"
           onClick={() => navigate(routes.conversations)}
         >
           <Icon name="arrowLeft" size={17} />
-          Messages
+          Back to messages
         </button>
 
-        <div className="create-summary__title">
-          <span className="eyebrow">New private space</span>
-          <h1>Create group</h1>
-          <p>Start a private conversation with two or more friends.</p>
-        </div>
+        <header className="group-create-summary__header">
+          <span className="eyebrow">New group</span>
+          <h1>Create a private space</h1>
+          <p>
+            Choose a name and invite at least two friends to start the
+            conversation.
+          </p>
+        </header>
 
-        <div className="photo-row">
-          <Avatar initials={getInitials(name)} tone="violet" size="xl" />
+        <section className="group-preview-card" aria-label="Group preview">
+          <div className="group-preview-card__identity">
+            <Avatar
+              initials={getInitials(name || 'PulseLink group')}
+              tone="violet"
+              size="xl"
+            />
+            <div>
+              <small>Group preview</small>
+              <h2>{name.trim() || 'Untitled group'}</h2>
+              <p>
+                {selectedIds.length}{' '}
+                {selectedIds.length === 1 ? 'member selected' : 'members selected'}
+              </p>
+            </div>
+          </div>
+
+          <div className="group-preview-card__privacy">
+            <Icon name="lock" size={17} />
+            Private conversation
+          </div>
+        </section>
+
+        <label className="group-name-field">
           <span>
-            <b>Group photo</b>
-            <small>You can upload a custom photo after creating the group.</small>
+            <b>Group name</b>
+            <small>{name.length}/60</small>
           </span>
-        </div>
-
-        <label className="form-field">
-          <span>Group name</span>
           <input
             value={name}
             onChange={(event) => setName(event.target.value)}
@@ -87,54 +110,76 @@ export function CreateGroupPage() {
             placeholder="Weekend plans"
             autoFocus
           />
-          <small>{name.length}/60</small>
         </label>
 
-        <div className="selected-head">
-          <b>Selected members</b>
-          <span>{selectedIds.length} selected</span>
-        </div>
-
-        <div className="selected-members">
-          {selectedPeople.map((person) => (
-            <div className="selected-member" key={person.id}>
-              <Avatar initials={getInitials(person.displayName)} tone="violet" />
-              <span>
-                <b>{person.displayName}</b>
-                <small>@{person.username}</small>
-              </span>
-              <button
-                type="button"
-                onClick={() => toggleMember(person.id)}
-                aria-label={`Remove ${person.displayName}`}
-              >
-                <Icon name="x" size={16} />
-              </button>
+        <section className="group-selected-section">
+          <header>
+            <div>
+              <h2>Selected members</h2>
+              <p>These friends will join when the group is created.</p>
             </div>
-          ))}
+            <span>{selectedIds.length}/2 minimum</span>
+          </header>
 
-          {selectedPeople.length === 0 ? (
-            <p className="muted-copy">Choose at least two friends from the list.</p>
-          ) : null}
-        </div>
+          <div className="group-selected-list">
+            {selectedPeople.map((person) => (
+              <article className="group-selected-person" key={person.id}>
+                <Avatar
+                  initials={getInitials(person.displayName)}
+                  tone="violet"
+                  online={person.isOnline}
+                  size="sm"
+                />
+                <span>
+                  <b>{person.displayName}</b>
+                  <small>@{person.username}</small>
+                </span>
+                <button
+                  type="button"
+                  onClick={() => toggleMember(person.id)}
+                  aria-label={`Remove ${person.displayName}`}
+                >
+                  <Icon name="x" size={15} />
+                </button>
+              </article>
+            ))}
+
+            {selectedPeople.length === 0 ? (
+              <div className="group-selected-empty">
+                <Icon name="users" size={21} />
+                <span>
+                  <b>No one selected yet</b>
+                  <small>Choose at least two friends from the list.</small>
+                </span>
+              </div>
+            ) : null}
+          </div>
+        </section>
 
         {createGroupMutation.error ? (
-          <InlineAlert tone="danger" onDismiss={() => createGroupMutation.reset()}>
+          <InlineAlert
+            tone="danger"
+            onDismiss={() => createGroupMutation.reset()}
+          >
             {getApiErrorMessage(createGroupMutation.error)}
           </InlineAlert>
         ) : null}
 
-        <div className="create-footer">
+        <footer className="group-create-footer">
           <span className={canCreate ? 'ready' : undefined}>
-            ● {canCreate ? 'Ready to create' : 'Add a name and two friends'}
+            <i />
+            {canCreate
+              ? 'Ready to create'
+              : 'Add a name and select two friends'}
           </span>
+
           <Button
             disabled={!canCreate || createGroupMutation.isPending}
             onClick={() => void handleCreate()}
           >
-            {createGroupMutation.isPending ? 'Creating group…' : 'Create group'}
+            {createGroupMutation.isPending ? 'Creating…' : 'Create group'}
           </Button>
-        </div>
+        </footer>
       </section>
 
       <MemberPicker

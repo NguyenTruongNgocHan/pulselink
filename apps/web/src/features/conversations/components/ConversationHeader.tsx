@@ -50,18 +50,6 @@ export function ConversationHeader({
       </div>
 
       <div className="conversation-header__actions">
-        <button
-          type="button"
-          className="icon-button"
-          aria-label="Search this conversation"
-          title="Search this conversation"
-          onClick={() =>
-            navigate(`${routes.search}?conversationId=${conversation.id}`)
-          }
-        >
-          <Icon name="search" />
-        </button>
-
         {conversation.type === 'GROUP' ? (
           <button
             type="button"
@@ -73,6 +61,18 @@ export function ConversationHeader({
             <Icon name="info" />
           </button>
         ) : null}
+
+        <button
+          type="button"
+          className="icon-button"
+          aria-label="Search this conversation"
+          title="Search this conversation"
+          onClick={() =>
+            navigate(`${routes.search}?conversationId=${conversation.id}`)
+          }
+        >
+          <Icon name="search" />
+        </button>
       </div>
     </header>
   )

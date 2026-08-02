@@ -40,7 +40,9 @@ export function GroupAdminPage() {
     return (
       <section className="group-page">
         <InlineAlert tone="danger">
-          {groupQuery.error ? getApiErrorMessage(groupQuery.error) : 'Group not found.'}
+          {groupQuery.error
+            ? getApiErrorMessage(groupQuery.error)
+            : 'Group not found.'}
         </InlineAlert>
       </section>
     )
@@ -48,12 +50,16 @@ export function GroupAdminPage() {
 
   const group = groupQuery.data
   const error =
-    removeMemberMutation.error ?? transferAdminMutation.error ?? leaveMutation.error
+    removeMemberMutation.error ??
+    transferAdminMutation.error ??
+    leaveMutation.error
+
   const dismissError = () => {
     removeMemberMutation.reset()
     transferAdminMutation.reset()
     leaveMutation.reset()
   }
+
   const isWorking =
     removeMemberMutation.isPending ||
     transferAdminMutation.isPending ||
@@ -65,19 +71,24 @@ export function GroupAdminPage() {
     if (pendingAction.type === 'REMOVE' && pendingAction.memberId) {
       await removeMemberMutation.mutateAsync(pendingAction.memberId)
     }
+
     if (pendingAction.type === 'TRANSFER' && pendingAction.memberId) {
       await transferAdminMutation.mutateAsync(pendingAction.memberId)
     }
+
     if (pendingAction.type === 'LEAVE') {
       await leaveMutation.mutateAsync()
       navigate(routes.conversations)
     }
+
     setPendingAction(null)
   }
 
+  const onlineCount = group.members.filter((member) => member.isOnline).length
+
   return (
-    <section className="group-page">
-      <header className="pane-header">
+    <section className="group-page group-admin-page">
+      <header className="group-page-header">
         <button
           type="button"
           className="icon-button"
@@ -86,19 +97,44 @@ export function GroupAdminPage() {
         >
           <Icon name="arrowLeft" />
         </button>
+
         <div>
           <b>Manage group</b>
           <small>{group.name}</small>
         </div>
       </header>
 
-      <div className="admin-content">
-        <div className="notice purple">
+      <div className="group-admin-content">
+        <section className="group-admin-summary">
+          <div>
+            <span className="eyebrow">Group administration</span>
+            <h1>{group.name}</h1>
+            <p>Manage member access and keep the group ownership clear.</p>
+          </div>
+
+          <div className="group-admin-summary__stats">
+            <span>
+              <b>{group.members.length}</b>
+              <small>Members</small>
+            </span>
+            <span>
+              <b>{onlineCount}</b>
+              <small>Online</small>
+            </span>
+            <span>
+              <b>1</b>
+              <small>Admin</small>
+            </span>
+          </div>
+        </section>
+
+        <div className="group-admin-notice">
           <Icon name="shield" />
           <span>
             <b>You are the group admin</b>
             <small>
-              You can remove members and transfer administration to another active member.
+              You can remove members or transfer administration to another
+              member.
             </small>
           </span>
         </div>
@@ -109,16 +145,16 @@ export function GroupAdminPage() {
           </InlineAlert>
         ) : null}
 
-        <section className="group-management-section">
+        <section className="group-admin-members">
           <header>
             <div>
               <h2>Members</h2>
               <p>Manage access to this private group.</p>
             </div>
-            <span>{group.members.length} members</span>
+            <span>{group.members.length} total</span>
           </header>
 
-          <div className="member-list">
+          <div className="group-admin-member-list">
             {group.members.map((member) => (
               <GroupMemberRow
                 key={member.id}
@@ -144,12 +180,20 @@ export function GroupAdminPage() {
           </div>
         </section>
 
-        <section className="leave-area">
+        <section className="group-admin-danger">
           <div>
-            <h2>Leave group</h2>
-            <p>Transfer the admin role before leaving so the group always has an administrator.</p>
+            <span className="eyebrow">Membership</span>
+            <h2>Leave this group</h2>
+            <p>
+              Transfer the admin role first so the group always keeps an
+              administrator.
+            </p>
           </div>
-          <Button variant="danger" onClick={() => setPendingAction({ type: 'LEAVE' })}>
+
+          <Button
+            variant="danger"
+            onClick={() => setPendingAction({ type: 'LEAVE' })}
+          >
             Leave group
           </Button>
         </section>

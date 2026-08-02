@@ -28,7 +28,9 @@ export function GroupDetailsPage() {
     return (
       <section className="group-page">
         <InlineAlert tone="danger">
-          {groupQuery.error ? getApiErrorMessage(groupQuery.error) : 'Group not found.'}
+          {groupQuery.error
+            ? getApiErrorMessage(groupQuery.error)
+            : 'Group not found.'}
         </InlineAlert>
       </section>
     )
@@ -36,10 +38,11 @@ export function GroupDetailsPage() {
 
   const group = groupQuery.data
   const admin = group.members.find((member) => member.role === 'ADMIN')
+  const onlineCount = group.members.filter((member) => member.isOnline).length
 
   return (
-    <section className="group-page">
-      <header className="pane-header">
+    <section className="group-page group-details-page">
+      <header className="group-page-header">
         <button
           type="button"
           className="icon-button"
@@ -48,38 +51,71 @@ export function GroupDetailsPage() {
         >
           <Icon name="arrowLeft" />
         </button>
+
         <div>
           <b>Group details</b>
-          <small>{group.status === 'CLOSED' ? 'Closed by moderation' : 'Private group'}</small>
+          <small>
+            {group.status === 'CLOSED' ? 'Closed by moderation' : 'Private group'}
+          </small>
         </div>
       </header>
 
-      <div className="group-detail-content">
-        <section className="group-hero-card">
-          <Avatar initials={getInitials(group.name)} tone="violet" size="xl" />
-          <div>
-            <span className="eyebrow">{group.members.length} members</span>
-            <h1>{group.name}</h1>
-            <p>
-              Created {formatDateTime(group.createdAt)}
-              {admin ? ` · Admin: ${admin.displayName}` : ''}
-            </p>
+      <div className="group-details-content">
+        <section className="group-profile-card">
+          <div className="group-profile-card__glow" />
+
+          <div className="group-profile-card__main">
+            <Avatar
+              initials={getInitials(group.name)}
+              tone="violet"
+              size="xl"
+            />
+
+            <div className="group-profile-card__copy">
+              <span className="eyebrow">Private group</span>
+              <h1>{group.name}</h1>
+              <p>
+                Created {formatDateTime(group.createdAt)}
+                {admin ? ` · Admin: ${admin.displayName}` : ''}
+              </p>
+            </div>
+
+            {group.currentUserRole === 'ADMIN' ? (
+              <Button
+                onClick={() =>
+                  navigate(routes.groupAdministration(group.id))
+                }
+              >
+                <Icon name="settings" size={17} />
+                Manage group
+              </Button>
+            ) : null}
           </div>
-          {group.currentUserRole === 'ADMIN' ? (
-            <Button onClick={() => navigate(routes.groupAdministration(group.id))}>
-              <Icon name="settings" size={17} />
-              Manage group
-            </Button>
-          ) : null}
+
+          <div className="group-profile-card__stats">
+            <span>
+              <b>{group.members.length}</b>
+              <small>Members</small>
+            </span>
+            <span>
+              <b>{onlineCount}</b>
+              <small>Online now</small>
+            </span>
+            <span>
+              <b>{group.currentUserRole === 'ADMIN' ? 'Admin' : 'Member'}</b>
+              <small>Your role</small>
+            </span>
+          </div>
         </section>
 
         {group.status === 'CLOSED' ? (
           <InlineAlert tone="warning" title="This group is closed">
-            Existing members can view history, but new messages and membership changes are disabled.
+            Existing members can view history, but new messages and membership
+            changes are disabled.
           </InlineAlert>
         ) : null}
 
-        <section className="group-members-card">
+        <section className="group-members-panel">
           <header>
             <div>
               <h2>Members</h2>
@@ -88,7 +124,7 @@ export function GroupDetailsPage() {
             <span>{group.members.length}</span>
           </header>
 
-          <div className="group-member-grid">
+          <div className="group-members-grid">
             {group.members.map((member) => (
               <article key={member.id}>
                 <Avatar
@@ -96,11 +132,16 @@ export function GroupDetailsPage() {
                   tone="violet"
                   online={member.isOnline}
                 />
+
                 <span>
                   <b>{member.displayName}</b>
                   <small>@{member.username}</small>
                 </span>
-                {member.role === 'ADMIN' ? <em>Admin</em> : null}
+
+                <div>
+                  {member.role === 'ADMIN' ? <em>Admin</em> : null}
+                  <small>{member.isOnline ? 'Online' : 'Offline'}</small>
+                </div>
               </article>
             ))}
           </div>

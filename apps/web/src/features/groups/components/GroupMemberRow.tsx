@@ -19,29 +19,50 @@ export function GroupMemberRow({
   onRemove,
 }: GroupMemberRowProps) {
   return (
-    <article className="group-member-row">
-      <Avatar
-        initials={getInitials(member.displayName)}
-        tone="violet"
-        online={member.isOnline}
-      />
-      <span className="group-member-row__identity">
-        <b>
-          {member.displayName}
-          {member.role === 'ADMIN' ? <em>Admin</em> : null}
-        </b>
-        <small>@{member.username}</small>
+    <article className="group-admin-member-row">
+      <div className="group-admin-member-row__profile">
+        <Avatar
+          initials={getInitials(member.displayName)}
+          tone="violet"
+          online={member.isOnline}
+        />
+
+        <span>
+          <b>
+            {member.displayName}
+            {member.role === 'ADMIN' ? <em>Admin</em> : null}
+          </b>
+          <small>@{member.username}</small>
+        </span>
+      </div>
+
+      <span className="group-admin-member-row__presence">
+        <i className={member.isOnline ? 'online' : undefined} />
+        {member.isOnline ? 'Online' : 'Offline'}
       </span>
+
       {canManage && member.role !== 'ADMIN' ? (
-        <div className="group-member-row__actions">
-          <Button variant="secondary" onClick={onTransferAdmin} disabled={isWorking}>
+        <div className="group-admin-member-row__actions">
+          <Button
+            variant="secondary"
+            onClick={onTransferAdmin}
+            disabled={isWorking}
+          >
             Transfer admin
           </Button>
-          <Button variant="danger" onClick={onRemove} disabled={isWorking}>
+          <Button
+            variant="danger"
+            onClick={onRemove}
+            disabled={isWorking}
+          >
             Remove
           </Button>
         </div>
-      ) : null}
+      ) : (
+        <span className="group-admin-member-row__locked">
+          {member.role === 'ADMIN' ? 'Current admin' : 'Member'}
+        </span>
+      )}
     </article>
   )
 }
