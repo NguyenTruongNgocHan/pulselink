@@ -21,30 +21,33 @@ export function FriendRequestCard({
   onCancel,
 }: FriendRequestCardProps) {
   return (
-    <article className="request-card">
+    <article className="friend-request-item" aria-busy={isWorking}>
       <Avatar
         initials={getInitials(request.displayName)}
+        src={request.avatarUrl}
+        alt=""
         tone="violet"
-        size="lg"
       />
-      <div>
-        <h3>{request.displayName}</h3>
-        <p>@{request.username}</p>
-        <small>{formatRelativeTime(request.requestedAt)}</small>
+
+      <div className="friend-request-item__copy">
+        <b>{request.displayName}</b>
+        <small>@{request.username}</small>
+        <time>{formatRelativeTime(request.requestedAt)}</time>
       </div>
-      <div className="request-card__actions">
+
+      <div className="friend-request-item__actions">
         {request.direction === 'RECEIVED' ? (
           <>
             <Button onClick={onAccept} disabled={isWorking}>
-              Accept
+              {isWorking ? 'Working…' : 'Accept'}
             </Button>
-            <Button variant="secondary" onClick={onDecline} disabled={isWorking}>
+            <Button variant="ghost" onClick={onDecline} disabled={isWorking}>
               Decline
             </Button>
           </>
         ) : (
           <Button variant="secondary" onClick={onCancel} disabled={isWorking}>
-            Cancel request
+            {isWorking ? 'Cancelling…' : 'Cancel'}
           </Button>
         )}
       </div>

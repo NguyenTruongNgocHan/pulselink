@@ -12,17 +12,15 @@ import { routes } from '@/shared/constants/routes'
 import { useCombinedError } from '@/shared/hooks/useCombinedError'
 import { getApiErrorMessage } from '@/shared/utils/apiError'
 
+type RequestTab = 'received' | 'sent'
+
 export function FriendRequestsPage() {
   const navigate = useNavigate()
-  const [tab, setTab] = useState<'received' | 'sent'>('received')
+  const [tab, setTab] = useState<RequestTab>('received')
   const [activePersonId, setActivePersonId] = useState<string | null>(null)
-  const { requestsQuery, acceptMutation, declineMutation, cancelMutation } =
-    useFriendRequests()
+  const { requestsQuery, acceptMutation, declineMutation, cancelMutation } = useFriendRequests()
 
-  const requests = useMemo(
-    () => requestsQuery.data?.[tab] ?? [],
-    [requestsQuery.data, tab],
-  )
+  const requests = useMemo(() => requestsQuery.data?.[tab] ?? [], [requestsQuery.data, tab])
 
   const mutate = async (personId: string, action: () => Promise<unknown>) => {
     setActivePersonId(personId)
@@ -40,30 +38,32 @@ export function FriendRequestsPage() {
     cancelMutation,
   ])
 
-  const switchTab = (nextTab: 'received' | 'sent') => {
+  const switchTab = (nextTab: RequestTab) => {
     dismiss()
     setTab(nextTab)
   }
 
   return (
-    <main className="requests-page">
-      <header className="requests-page__header">
-        <button type="button" className="back-link" onClick={() => navigate(routes.people)}>
-          <Icon name="arrowLeft" size={17} />
-          People
-        </button>
-        <div>
-          <span className="eyebrow">Your network</span>
-          <h1>Friend requests</h1>
-          <p>Review who can join your private PulseLink circle.</p>
-        </div>
-        <Button variant="secondary" onClick={() => navigate(routes.people)}>
-          Find people
-        </Button>
-      </header>
+    <main className="workspace people-workspace people-workspace--refined">
+      <section className="list-panel people-panel people-panel--refined">
+        <header className="people-panel__header">
+          <div>
+            <span className="eyebrow">Your network</span>
+            <h1>Requests</h1>
+            <small>Manage incoming and sent invitations.</small>
+          </div>
 
-      <section className="requests-card">
-        <div className="tabs requests-tabs" role="tablist" aria-label="Friend request direction">
+          <Button
+            variant="secondary"
+            aria-label="Back to people"
+            onClick={() => navigate(routes.people)}
+          >
+            <Icon name="arrowLeft" size={16} />
+            People
+          </Button>
+        </header>
+
+        <div className="people-request-tabs" role="tablist" aria-label="Friend request direction">
           <button
             type="button"
             className={tab === 'received' ? 'active' : undefined}
@@ -92,43 +92,65 @@ export function FriendRequestsPage() {
           </InlineAlert>
         ) : null}
 
-        {requestsQuery.isLoading ? <LoadingState rows={5} label="Loading friend requests" /> : null}
+        <div className="request-list request-list--refined" aria-live="polite" aria-busy={requestsQuery.isLoading}>
+          {requestsQuery.isLoading ? <LoadingState rows={5} label="Loading friend requests" /> : null}
 
-        {!requestsQuery.isLoading && requests.length === 0 ? (
-          <EmptyState
-            icon="users"
-            title={tab === 'received' ? 'No pending requests' : 'No sent requests'}
-            description={
-              tab === 'received'
-                ? 'New requests will appear here when someone wants to connect.'
-                : 'People you invite will appear here until they respond.'
-            }
-            action={
-              <Button onClick={() => navigate(routes.people)}>
-                <Icon name="search" size={17} />
-                Discover people
-              </Button>
-            }
-          />
-        ) : null}
-
-        <div className="request-list">
-          {requests.map((request) => (
-            <FriendRequestCard
-              key={request.id}
-              request={request}
-              isWorking={activePersonId === request.id}
-              onAccept={() =>
-                void mutate(request.id, () => acceptMutation.mutateAsync(request.id))
+          {!requestsQuery.isLoading && requests.length === 0 ? (
+            <EmptyState
+              compact
+              icon="users"
+              title={tab === 'received' ? 'No pending requests' : 'No sent requests'}
+              description={
+                tab === 'received'
+                  ? 'New invitations will appear here.'
+                  : 'Requests you send will remain here until answered.'
               }
-              onDecline={() =>
-                void mutate(request.id, () => declineMutation.mutateAsync(request.id))
-              }
-              onCancel={() =>
-                void mutate(request.id, () => cancelMutation.mutateAsync(request.id))
+              action={
+                <Button onClick={() => navigate(routes.people)}>
+                  <Icon name="search" size={16} />
+                  Find people
+                </Button>
               }
             />
-          ))}
+          ) : null}
+
+          {!requestsQuery.isLoading
+            ? requests.map((request) => (
+                <FriendRequestCard
+                  key={request.id}
+                  request={request}
+                  isWorking={activePersonId === request.id}
+                  onAccept={() =>
+                    void mutate(request.id, () => acceptMutation.mutateAsync(request.id))
+                  }
+                  onDecline={() =>
+                    void mutate(request.id, () => declineMutation.mutateAsync(request.id))
+                  }
+                  onCancel={() =>
+                    void mutate(request.id, () => cancelMutation.mutateAsync(request.id))
+                  }
+                />
+              ))
+            : null}
+        </div>
+      </section>
+
+      <section className="people-overview people-overview--requests">
+        <div className="people-overview__glow" />
+        <div className="people-overview__content">
+          <span className="people-overview__icon">
+            <Icon name="users" size={26} />
+          </span>
+          <span className="eyebrow">Your circle, your choice</span>
+          <h2>Keep your network intentional.</h2>
+          <p>
+            Accept people you trust, decline requests quietly, and keep every
+            PulseLink conversation inside a circle you control.
+          </p>
+          <Button variant="secondary" onClick={() => navigate(routes.people)}>
+            <Icon name="search" size={16} />
+            Discover people
+          </Button>
         </div>
       </section>
     </main>

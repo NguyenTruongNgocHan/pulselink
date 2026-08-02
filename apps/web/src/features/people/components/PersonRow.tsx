@@ -21,52 +21,67 @@ export function PersonRow({
   onAcceptRequest,
   onRemoveFriend,
 }: PersonRowProps) {
-  const relationshipAction = (() => {
+  const action = (() => {
     switch (person.relationshipStatus) {
       case 'FRIEND':
         return (
-          <>
-            <Button variant="primary" onClick={onMessage} disabled={isWorking}>
-              Message
-            </Button>
-            <Button variant="ghost" onClick={onRemoveFriend} disabled={isWorking}>
-              Remove
-            </Button>
-          </>
+          <Button onClick={onMessage} disabled={isWorking}>
+            {isWorking ? 'Opening…' : 'Message'}
+          </Button>
         )
       case 'PENDING_RECEIVED':
         return (
-          <Button variant="primary" onClick={onAcceptRequest} disabled={isWorking}>
-            Accept
+          <Button onClick={onAcceptRequest} disabled={isWorking}>
+            {isWorking ? 'Accepting…' : 'Accept'}
           </Button>
         )
       case 'PENDING_SENT':
-        return <span className="status-pill">Request sent</span>
+        return <span className="people-item__status">Sent</span>
       case 'BLOCKED':
-        return <span className="status-pill status-pill--muted">Blocked</span>
+        return <span className="people-item__status people-item__status--muted">Blocked</span>
       default:
         return (
           <Button variant="secondary" onClick={onSendRequest} disabled={isWorking}>
-            Add friend
+            {isWorking ? 'Sending…' : 'Add'}
           </Button>
         )
     }
   })()
 
   return (
-    <article className="person-card">
+    <article className="people-item" aria-busy={isWorking}>
       <Avatar
         initials={getInitials(person.displayName)}
+        src={person.avatarUrl}
+        alt=""
         tone="violet"
         online={person.isOnline}
-        size="lg"
       />
-      <div className="person-card__identity">
-        <h3>{person.displayName}</h3>
-        <p>@{person.username}</p>
-        {person.bio ? <small>{person.bio}</small> : null}
+
+      <div className="people-item__copy">
+        <div className="people-item__name-line">
+          <b>{person.displayName}</b>
+          {person.relationshipStatus === 'FRIEND' ? (
+            <span className="people-item__relation">Friend</span>
+          ) : null}
+        </div>
+        <small>@{person.username}</small>
+        {person.bio ? <p>{person.bio}</p> : null}
       </div>
-      <div className="person-card__actions">{relationshipAction}</div>
+
+      <div className="people-item__action">
+        {action}
+        {person.relationshipStatus === 'FRIEND' ? (
+          <button
+            type="button"
+            className="people-item__remove"
+            onClick={onRemoveFriend}
+            disabled={isWorking}
+          >
+            Remove
+          </button>
+        ) : null}
+      </div>
     </article>
   )
 }

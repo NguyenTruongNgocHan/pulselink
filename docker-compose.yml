@@ -43,7 +43,14 @@ services:
     volumes:
       - uploads_data:/data/uploads
     healthcheck:
-      test: ["CMD", "curl", "--fail", "--silent", "http://localhost:8080/actuator/health"]
+      test:
+        [
+          "CMD",
+          "curl",
+          "--fail",
+          "--silent",
+          "http://localhost:8080/actuator/health"
+        ]
       interval: 10s
       timeout: 5s
       retries: 20
