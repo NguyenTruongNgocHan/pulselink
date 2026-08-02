@@ -16,32 +16,64 @@ export function ProfileGroupsCard({
   onOpenGroup,
 }: ProfileGroupsCardProps) {
   return (
-    <section className="profile-section-card">
-      <header>
+    <section className="profile-card-v2">
+      <header className="profile-card-v2__header">
         <div>
-          <h2>Your groups</h2>
-          <p>Private spaces you are part of.</p>
+          <span className="profile-card-v2__icon">
+            <Icon name="users" size={17} />
+          </span>
+
+          <span>
+            <h2>Your groups</h2>
+            <p>Private spaces you are part of.</p>
+          </span>
         </div>
-        <Button variant="ghost" onClick={onCreateGroup}>
+
+        <button
+          type="button"
+          className="profile-card-v2__action"
+          onClick={onCreateGroup}
+        >
           New group
-        </Button>
+        </button>
       </header>
 
-      <div className="profile-groups-list">
-        {groups.map((group) => (
-          <button key={group.id} type="button" onClick={() => onOpenGroup(group.id)}>
-            <Avatar initials={getInitials(group.name)} tone="violet" />
-            <span>
-              <b>{group.name}</b>
-              <small>View group details</small>
-            </span>
-            <Icon name="chevron" size={16} />
-          </button>
-        ))}
-        {groups.length === 0 ? (
-          <p className="muted-copy">You have not joined any groups yet.</p>
-        ) : null}
-      </div>
+      {groups.length > 0 ? (
+        <div className="profile-groups-v2">
+          {groups.map((group) => (
+            <button
+              key={group.id}
+              type="button"
+              onClick={() => onOpenGroup(group.id)}
+            >
+              <Avatar
+                initials={getInitials(group.name)}
+                tone="violet"
+              />
+
+              <span>
+                <strong>{group.name}</strong>
+                <small>Open group details</small>
+              </span>
+
+              <span className="profile-groups-v2__arrow">
+                <Icon name="chevron" size={16} />
+              </span>
+            </button>
+          ))}
+        </div>
+      ) : (
+        <div className="profile-card-v2__empty">
+          <span>
+            <Icon name="users" size={20} />
+          </span>
+          <strong>No groups yet</strong>
+          <p>Create a private space for your circle.</p>
+          <Button variant="secondary" onClick={onCreateGroup}>
+            Create group
+          </Button>
+        </div>
+      )}
     </section>
   )
 }

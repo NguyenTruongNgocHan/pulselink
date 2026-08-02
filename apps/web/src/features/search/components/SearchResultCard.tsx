@@ -2,7 +2,7 @@ import { Avatar } from '@/components/ui/Avatar'
 import { Icon } from '@/components/ui/Icon'
 import type { MessageSearchResult } from '@/features/search/types/search.types'
 import { getInitials } from '@/shared/utils/avatar'
-import { formatDateTime } from '@/shared/utils/date'
+import { formatRelativeTime } from '@/shared/utils/date'
 
 interface SearchResultCardProps {
   result: MessageSearchResult
@@ -12,37 +12,68 @@ interface SearchResultCardProps {
 
 function highlight(content: string, query: string) {
   const normalizedQuery = query.trim()
-  if (!normalizedQuery) return content
 
-  const index = content.toLowerCase().indexOf(normalizedQuery.toLowerCase())
-  if (index === -1) return content
+  if (!normalizedQuery) {
+    return content
+  }
+
+  const normalizedContent = content.toLowerCase()
+  const matchIndex = normalizedContent.indexOf(normalizedQuery.toLowerCase())
+
+  if (matchIndex === -1) {
+    return content
+  }
 
   return (
     <>
-      {content.slice(0, index)}
-      <mark>{content.slice(index, index + normalizedQuery.length)}</mark>
-      {content.slice(index + normalizedQuery.length)}
+      {content.slice(0, matchIndex)}
+      <mark>
+        {content.slice(matchIndex, matchIndex + normalizedQuery.length)}
+      </mark>
+      {content.slice(matchIndex + normalizedQuery.length)}
     </>
   )
 }
 
-export function SearchResultCard({ result, query, onOpen }: SearchResultCardProps) {
+export function SearchResultCard({
+  result,
+  query,
+  onOpen,
+}: SearchResultCardProps) {
   return (
-    <button type="button" className="search-result-card" onClick={onOpen}>
-      <Avatar initials={getInitials(result.senderName)} tone="violet" />
-      <div>
-        <header>
-          <b>{result.senderName}</b>
-          <span>in {result.conversationName}</span>
-          <time>{formatDateTime(result.createdAt)}</time>
-        </header>
-        <p>{highlight(result.content, query)}</p>
-        <small>
-          {result.conversationType === 'GROUP' ? 'Group conversation' : 'Direct conversation'}
-          {result.editedAt ? ' · edited' : ''}
+    <button
+      type="button"
+      className="search-sync-result"
+      onClick={onOpen}
+      aria-label={`Open result from ${result.senderName} in ${result.conversationName}`}
+    >
+      <Avatar
+        initials={getInitials(result.senderName)}
+        tone="violet"
+        size="md"
+      />
+
+      <span className="search-sync-result__body">
+        <span className="search-sync-result__top">
+          <strong>{result.senderName}</strong>
+
+          <time dateTime={result.createdAt}>
+            {formatRelativeTime(result.createdAt)}
+          </time>
+        </span>
+
+        <small className="search-sync-result__conversation">
+          {result.conversationName}
         </small>
-      </div>
-      <Icon name="chevron" size={17} />
+
+        <span className="search-sync-result__message">
+          {highlight(result.content, query)}
+        </span>
+      </span>
+
+      <span className="search-sync-result__arrow" aria-hidden="true">
+        <Icon name="chevron" size={16} />
+      </span>
     </button>
   )
 }

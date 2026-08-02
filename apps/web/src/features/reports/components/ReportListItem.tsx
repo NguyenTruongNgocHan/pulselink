@@ -8,25 +8,49 @@ interface ReportListItemProps {
   onSelect: () => void
 }
 
-export function ReportListItem({ report, selected, onSelect }: ReportListItemProps) {
+export function ReportListItem({
+  report,
+  selected,
+  onSelect,
+}: ReportListItemProps) {
+  const statusLabel = report.status.replaceAll('_', ' ')
+
   return (
     <button
       type="button"
-      className={selected ? 'report-row selected' : 'report-row'}
+      className={[
+        'reports-v2-item',
+        selected ? 'selected' : '',
+      ]
+        .filter(Boolean)
+        .join(' ')}
       onClick={onSelect}
+      aria-pressed={selected}
     >
-      <span className="report-row__icon">
+      <span className="reports-v2-item__icon" aria-hidden="true">
         <Icon name="flag" size={18} />
       </span>
-      <span>
-        <b>{report.targetLabel}</b>
+
+      <span className="reports-v2-item__body">
+        <span className="reports-v2-item__top">
+          <strong>{report.targetLabel}</strong>
+
+          <time dateTime={report.updatedAt}>
+            {formatRelativeTime(report.updatedAt)}
+          </time>
+        </span>
+
         <small>{report.reason}</small>
+
+        <span
+          className={`reports-v2-status reports-v2-status--${report.status.toLowerCase()}`}
+        >
+          {statusLabel}
+        </span>
       </span>
-      <span className="report-row__meta">
-        <i className={`status-pill status-${report.status.toLowerCase()}`}>
-          {report.status.replace('_', ' ')}
-        </i>
-        <time>{formatRelativeTime(report.updatedAt)}</time>
+
+      <span className="reports-v2-item__arrow" aria-hidden="true">
+        <Icon name="chevron" size={15} />
       </span>
     </button>
   )

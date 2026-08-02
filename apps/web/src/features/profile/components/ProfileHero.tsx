@@ -28,66 +28,83 @@ export function ProfileHero({
 
   const handleFileSelected = async (file: File | undefined) => {
     if (!file) return
+
     await onUploadAvatar(file)
-    if (fileInputRef.current) fileInputRef.current.value = ''
+
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ''
+    }
   }
 
   return (
-    <header className="profile-cover">
-      <div className="profile-cover__glow" />
-      <div className="profile-identity">
-        <button
-          type="button"
-          className="profile-avatar-button"
-          onClick={() => fileInputRef.current?.click()}
-          aria-label="Upload profile photo"
-          disabled={isUploadingAvatar}
-        >
-          <Avatar
-            initials={getInitials(profile.displayName)}
-            src={profile.avatarUrl}
-            alt={`${profile.displayName}'s avatar`}
-            tone="violet"
-            size="xl"
-          />
-          <span aria-hidden="true">
-            <Icon
-              name={isUploadingAvatar ? 'loader' : 'camera'}
-              size={16}
-              className={isUploadingAvatar ? 'icon-spin' : undefined}
-            />
-          </span>
-        </button>
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept="image/jpeg,image/png,image/webp"
-          hidden
-          onChange={(event) => void handleFileSelected(event.target.files?.[0])}
-        />
+    <section className="profile-hero-v2">
+      <div className="profile-hero-v2__cover">
+        <div className="profile-hero-v2__cover-glow" />
+      </div>
 
-        <div>
-          <span className="eyebrow">@{profile.username}</span>
-          <h1>{profile.displayName}</h1>
-          <p>{profile.bio || 'A quieter place to stay connected.'}</p>
-          <small>Joined {formatDateTime(profile.createdAt)}</small>
+      <div className="profile-hero-v2__body">
+        <div className="profile-hero-v2__identity">
+          <button
+            type="button"
+            className="profile-hero-v2__avatar-button"
+            onClick={() => fileInputRef.current?.click()}
+            aria-label="Upload profile photo"
+            disabled={isUploadingAvatar}
+          >
+            <Avatar
+              initials={getInitials(profile.displayName)}
+              src={profile.avatarUrl}
+              alt={`${profile.displayName}'s avatar`}
+              tone="violet"
+              size="xl"
+            />
+
+            <span className="profile-hero-v2__camera" aria-hidden="true">
+              <Icon
+                name={isUploadingAvatar ? 'loader' : 'camera'}
+                size={15}
+                className={isUploadingAvatar ? 'icon-spin' : undefined}
+              />
+            </span>
+          </button>
+
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept="image/jpeg,image/png,image/webp"
+            hidden
+            onChange={(event) =>
+              void handleFileSelected(event.target.files?.[0])
+            }
+          />
+
+          <div className="profile-hero-v2__copy">
+            <span className="eyebrow">@{profile.username}</span>
+            <h2>{profile.displayName}</h2>
+            <p>{profile.bio || 'A quieter place to stay connected.'}</p>
+            <small>
+              PulseLink member since {formatDateTime(profile.createdAt)}
+            </small>
+          </div>
         </div>
 
-        <div className="profile-actions">
+        <div className="profile-hero-v2__actions">
           <Button variant="secondary" onClick={onOpenPrivacy}>
-            <Icon name="shield" size={17} />
+            <Icon name="shield" size={16} />
             Privacy
           </Button>
+
           <Button variant="secondary" onClick={onOpenSecurity}>
-            <Icon name="lock" size={17} />
+            <Icon name="lock" size={16} />
             Security
           </Button>
+
           <Button onClick={onEdit}>
-            <Icon name="edit" size={17} />
+            <Icon name="edit" size={16} />
             Edit profile
           </Button>
         </div>
       </div>
-    </header>
+    </section>
   )
 }

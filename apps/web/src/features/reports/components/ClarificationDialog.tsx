@@ -22,14 +22,19 @@ export function ClarificationDialog({
     <Modal
       isOpen={isOpen}
       title="Add clarification"
-      description="Clarifications are immutable after submission and visible to the review team."
+      description="Clarifications are permanent after submission and visible to the review team."
       onClose={onCancel}
       size="sm"
       footer={
         <>
-          <Button variant="secondary" disabled={isSubmitting} onClick={onCancel}>
+          <Button
+            variant="secondary"
+            disabled={isSubmitting}
+            onClick={onCancel}
+          >
             Cancel
           </Button>
+
           <Button
             disabled={value.trim().length < 3 || isSubmitting}
             onClick={onSubmit}
@@ -39,8 +44,9 @@ export function ClarificationDialog({
         </>
       }
     >
-      <label className="form-field">
+      <label className="reports-v2-dialog-field">
         <span>Additional context</span>
+
         <textarea
           value={value}
           onChange={(event) => onChange(event.target.value)}
@@ -49,6 +55,7 @@ export function ClarificationDialog({
           placeholder="Add information that may help the review team."
           autoFocus
         />
+
         <small>{value.length}/1000</small>
       </label>
     </Modal>

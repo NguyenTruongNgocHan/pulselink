@@ -10,6 +10,8 @@ import { AdminReportsPage } from '@/features/admin/pages/AdminReportsPage'
 import { AdminUserDetailsPage } from '@/features/admin/pages/AdminUserDetailsPage'
 import { AdminUsersPage } from '@/features/admin/pages/AdminUsersPage'
 
+import './admin.css'
+
 export function AdminPortal() {
   return (
     <Routes>
@@ -21,7 +23,10 @@ export function AdminPortal() {
         <Route path="reports/:reportId" element={<AdminReportDetailsPage />} />
         <Route path="groups" element={<AdminGroupsPage />} />
         <Route path="audit" element={<AdminAuditPage />} />
-        <Route path="forbidden" element={<Navigate to="/conversations" replace />} />
+        <Route
+          path="forbidden"
+          element={<Navigate to="/conversations" replace />}
+        />
         <Route path="*" element={<AdminNotFoundPage />} />
       </Route>
     </Routes>

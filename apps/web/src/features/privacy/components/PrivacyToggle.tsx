@@ -1,4 +1,7 @@
+import { Icon, type IconName } from '@/components/ui/Icon'
+
 interface PrivacyToggleProps {
+  icon: IconName
   title: string
   description: string
   checked: boolean
@@ -7,6 +10,7 @@ interface PrivacyToggleProps {
 }
 
 export function PrivacyToggle({
+  icon,
   title,
   description,
   checked,
@@ -14,18 +18,37 @@ export function PrivacyToggle({
   onChange,
 }: PrivacyToggleProps) {
   return (
-    <label className="privacy-toggle">
-      <span>
-        <b>{title}</b>
+    <label
+      className={[
+        'privacy-toggle-v2',
+        checked ? 'enabled' : '',
+        disabled ? 'disabled' : '',
+      ]
+        .filter(Boolean)
+        .join(' ')}
+    >
+      <span className="privacy-toggle-v2__icon" aria-hidden="true">
+        <Icon name={icon} size={18} />
+      </span>
+
+      <span className="privacy-toggle-v2__copy">
+        <strong>{title}</strong>
         <small>{description}</small>
       </span>
-      <input
-        type="checkbox"
-        checked={checked}
-        disabled={disabled}
-        onChange={(event) => onChange(event.target.checked)}
-      />
-      <i aria-hidden="true" />
+
+      <span className="privacy-toggle-v2__control">
+        <input
+          type="checkbox"
+          checked={checked}
+          disabled={disabled}
+          onChange={(event) => onChange(event.target.checked)}
+          aria-label={title}
+        />
+
+        <span className="privacy-toggle-v2__switch" aria-hidden="true">
+          <i />
+        </span>
+      </span>
     </label>
   )
 }

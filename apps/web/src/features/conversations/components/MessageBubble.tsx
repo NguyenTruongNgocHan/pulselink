@@ -2,6 +2,7 @@ import { useState } from 'react'
 
 import { Avatar } from '@/components/ui/Avatar'
 import { Icon } from '@/components/ui/Icon'
+import { AuthenticatedAttachment } from '@/features/conversations/components/AuthenticatedAttachment'
 import type { Message } from '@/features/conversations/types/conversation.types'
 import { getInitials } from '@/shared/utils/avatar'
 import { formatMessageTime } from '@/shared/utils/date'
@@ -27,13 +28,21 @@ export function MessageBubble({
 }: MessageBubbleProps) {
   const [showActions, setShowActions] = useState(false)
   const [isEditing, setIsEditing] = useState(false)
-  const [draft, setDraft] = useState(message.content ?? '')
-  const isDeleted = Boolean(message.deletedAt || message.moderatedAt)
+  const [draft, setDraft] = useState(
+    message.content ?? '',
+  )
+
+  const isDeleted = Boolean(
+    message.deletedAt || message.moderatedAt,
+  )
 
   const submitEdit = async () => {
     const nextContent = draft.trim()
 
-    if (!nextContent || nextContent === message.content) {
+    if (
+      !nextContent ||
+      nextContent === message.content
+    ) {
       setIsEditing(false)
       return
     }
@@ -54,7 +63,10 @@ export function MessageBubble({
         Seen
       </span>
     ) : isMine ? (
-      <span className="message-delivery" title="Sent">
+      <span
+        className="message-delivery"
+        title="Sent"
+      >
         <span aria-hidden="true">✓</span>
         Sent
       </span>
@@ -62,7 +74,9 @@ export function MessageBubble({
 
   return (
     <article
-      className={`bubble-row ${isMine ? 'outgoing' : 'incoming'}`}
+      className={`bubble-row ${
+        isMine ? 'outgoing' : 'incoming'
+      }`}
       onMouseEnter={() => setShowActions(true)}
       onMouseLeave={() => setShowActions(false)}
     >
@@ -78,14 +92,20 @@ export function MessageBubble({
 
       <div className="message-cluster">
         {!isMine ? (
-          <strong className="message-author">{message.senderName}</strong>
+          <strong className="message-author">
+            {message.senderName}
+          </strong>
         ) : null}
 
         <div
           className={[
             'message-bubble',
-            isDeleted ? 'message-bubble--deleted' : '',
-            isEditing ? 'message-bubble--editing' : '',
+            isDeleted
+              ? 'message-bubble--deleted'
+              : '',
+            isEditing
+              ? 'message-bubble--editing'
+              : '',
           ]
             .filter(Boolean)
             .join(' ')}
@@ -94,16 +114,25 @@ export function MessageBubble({
             <div className="message-edit-form">
               <textarea
                 value={draft}
-                onChange={(event) => setDraft(event.target.value)}
+                onChange={(event) =>
+                  setDraft(event.target.value)
+                }
                 maxLength={4_000}
                 autoFocus
               />
 
               <div>
-                <button type="button" onClick={() => setIsEditing(false)}>
+                <button
+                  type="button"
+                  onClick={() => setIsEditing(false)}
+                >
                   Cancel
                 </button>
-                <button type="button" onClick={() => void submitEdit()}>
+
+                <button
+                  type="button"
+                  onClick={() => void submitEdit()}
+                >
                   Save
                 </button>
               </div>
@@ -118,63 +147,48 @@ export function MessageBubble({
             </p>
           )}
 
-          {!isDeleted && message.attachments.length > 0 ? (
+          {!isDeleted &&
+          message.attachments.length > 0 ? (
             <div className="message-attachments">
-              {message.attachments.map((attachment) => (
-                <a
-                  key={attachment.id}
-                  href={attachment.downloadUrl}
-                  target="_blank"
-                  rel="noreferrer"
-                  className={
-                    attachment.mimeType.startsWith('image/')
-                      ? 'image-attachment'
-                      : 'file-attachment'
-                  }
-                >
-                  {attachment.mimeType.startsWith('image/') ? (
-                    <img
-                      src={attachment.downloadUrl}
-                      alt={attachment.fileName}
-                    />
-                  ) : (
-                    <>
-                      <span className="file-attachment__icon">
-                        <Icon name="file" />
-                      </span>
-                      <span>
-                        <b>{attachment.fileName}</b>
-                        <small>
-                          {Math.max(
-                            1,
-                            Math.round(attachment.sizeBytes / 1024),
-                          )}{' '}
-                          KB
-                        </small>
-                      </span>
-                      <Icon name="download" size={17} />
-                    </>
-                  )}
-                </a>
-              ))}
+              {message.attachments.map(
+                (attachment) => (
+                  <AuthenticatedAttachment
+                    key={attachment.id}
+                    attachment={attachment}
+                  />
+                ),
+              )}
             </div>
           ) : null}
         </div>
 
         <div className="message-meta">
-          <time>{formatMessageTime(message.createdAt)}</time>
-          {message.editedAt ? <span>Edited</span> : null}
+          <time>
+            {formatMessageTime(message.createdAt)}
+          </time>
+
+          {message.editedAt ? (
+            <span>Edited</span>
+          ) : null}
+
           {deliveryLabel}
         </div>
 
-        {!isDeleted && message.reactions.length > 0 ? (
+        {!isDeleted &&
+        message.reactions.length > 0 ? (
           <div className="reaction-summary">
             {message.reactions.map((reaction) => (
               <button
                 key={reaction.emoji}
                 type="button"
-                className={reaction.reactedByMe ? 'active' : undefined}
-                onClick={() => void onReact(reaction.emoji)}
+                className={
+                  reaction.reactedByMe
+                    ? 'active'
+                    : undefined
+                }
+                onClick={() =>
+                  void onReact(reaction.emoji)
+                }
               >
                 {reaction.emoji} {reaction.count}
               </button>
@@ -208,7 +222,10 @@ export function MessageBubble({
               }
               onClick={() => void onToggleSave()}
             >
-              <Icon name="bookmark" size={16} />
+              <Icon
+                name="bookmark"
+                size={16}
+              />
             </button>
 
             {isMine ? (
@@ -216,16 +233,25 @@ export function MessageBubble({
                 <button
                   type="button"
                   aria-label="Edit message"
-                  onClick={() => setIsEditing(true)}
+                  onClick={() =>
+                    setIsEditing(true)
+                  }
                 >
-                  <Icon name="edit" size={16} />
+                  <Icon
+                    name="edit"
+                    size={16}
+                  />
                 </button>
+
                 <button
                   type="button"
                   aria-label="Delete message"
                   onClick={() => void onDelete()}
                 >
-                  <Icon name="trash" size={16} />
+                  <Icon
+                    name="trash"
+                    size={16}
+                  />
                 </button>
               </>
             ) : null}

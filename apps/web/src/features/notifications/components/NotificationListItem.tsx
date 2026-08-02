@@ -14,6 +14,7 @@ function notificationIcon(type: string): IconName {
   if (type.includes('GROUP')) return 'group'
   if (type.includes('FRIEND')) return 'users'
   if (type.includes('MESSAGE')) return 'chat'
+
   return 'bell'
 }
 
@@ -22,21 +23,45 @@ export function NotificationListItem({
   selected,
   onSelect,
 }: NotificationListItemProps) {
+  const isUnread = !notification.readAt
+
   return (
     <button
       type="button"
-      className={`notification-row ${selected ? 'selected' : ''} ${notification.readAt ? '' : 'unread'}`}
+      className={[
+        'notifications-sync-item',
+        selected ? 'selected' : '',
+        isUnread ? 'unread' : '',
+      ]
+        .filter(Boolean)
+        .join(' ')}
       onClick={onSelect}
+      aria-pressed={selected}
     >
-      <span className="notification-row__icon">
-        <Icon name={notificationIcon(notification.type)} size={19} />
+      <span className="notifications-sync-item__icon" aria-hidden="true">
+        <Icon name={notificationIcon(notification.type)} size={18} />
       </span>
-      <span>
-        <b>{notification.title}</b>
-        <small>{notification.body}</small>
+
+      <span className="notifications-sync-item__body">
+        <span className="notifications-sync-item__top">
+          <strong>{notification.title}</strong>
+
+          <time dateTime={notification.createdAt}>
+            {formatRelativeTime(notification.createdAt)}
+          </time>
+        </span>
+
+        <span className="notifications-sync-item__message">
+          {notification.body}
+        </span>
       </span>
-      <time>{formatRelativeTime(notification.createdAt)}</time>
-      {!notification.readAt ? <i aria-label="Unread" /> : null}
+
+      {isUnread ? (
+        <span
+          className="notifications-sync-item__unread"
+          aria-label="Unread notification"
+        />
+      ) : null}
     </button>
   )
 }

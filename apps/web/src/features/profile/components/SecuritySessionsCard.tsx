@@ -21,32 +21,40 @@ export function SecuritySessionsCard({
   onRevokeSession,
 }: SecuritySessionsCardProps) {
   return (
-    <section className="settings-card">
-      <header className="settings-card__split-header">
+    <section className="security-card-v2">
+      <header className="security-card-v2__header security-card-v2__header--split">
         <div>
           <h2>Active sessions</h2>
           <p>Review devices that can access your account.</p>
         </div>
+
         <Button
           variant="secondary"
           disabled={isRevokingOthers || sessions.length <= 1}
           onClick={onRevokeOthers}
         >
-          {isRevokingOthers ? 'Signing out…' : 'Sign out other sessions'}
+          {isRevokingOthers
+            ? 'Signing out…'
+            : 'Sign out other sessions'}
         </Button>
       </header>
 
-      {isLoading ? <LoadingState rows={4} label="Loading security sessions" /> : null}
-      <div className="security-session-list">
-        {sessions.map((session) => (
-          <SecuritySessionRow
-            key={session.id}
-            session={session}
-            isRevoking={activeSessionId === session.id}
-            onRevoke={() => onRevokeSession(session.id)}
-          />
-        ))}
-      </div>
+      {isLoading ? (
+        <LoadingState rows={4} label="Loading security sessions" />
+      ) : null}
+
+      {!isLoading ? (
+        <div className="security-sessions-v2">
+          {sessions.map((session) => (
+            <SecuritySessionRow
+              key={session.id}
+              session={session}
+              isRevoking={activeSessionId === session.id}
+              onRevoke={() => onRevokeSession(session.id)}
+            />
+          ))}
+        </div>
+      ) : null}
     </section>
   )
 }

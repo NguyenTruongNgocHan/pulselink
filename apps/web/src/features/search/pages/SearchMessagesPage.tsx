@@ -4,102 +4,153 @@ import { useNavigate, useSearchParams } from 'react-router-dom'
 import { Icon } from '@/components/ui/Icon'
 import { SearchResultCard } from '@/features/search/components/SearchResultCard'
 import { useMessageSearch } from '@/features/search/hooks/useMessageSearch'
-import { EmptyState } from '@/shared/components/feedback/EmptyState'
 import { InlineAlert } from '@/shared/components/feedback/InlineAlert'
 import { LoadingState } from '@/shared/components/feedback/LoadingState'
 import { SearchInput } from '@/shared/components/form/SearchInput'
 import { routes } from '@/shared/constants/routes'
 import { getApiErrorMessage } from '@/shared/utils/apiError'
 
+import './search.css'
+
 export function SearchMessagesPage() {
   const navigate = useNavigate()
   const [searchParams] = useSearchParams()
+
   const conversationId = searchParams.get('conversationId') ?? undefined
   const [query, setQuery] = useState('')
+
   const searchQuery = useMessageSearch(query, conversationId)
 
+  const normalizedQuery = query.trim()
+  const canSearch = normalizedQuery.length >= 2
+  const resultCount = searchQuery.data?.length ?? 0
+
+  const clearSearch = () => {
+    setQuery('')
+  }
+
   return (
-    <main className="workspace search-workspace">
-      <aside className="filter-panel search-filter-panel">
-        <header>
-          <span className="eyebrow">Across your conversations</span>
-          <h1>Search messages</h1>
-          <p>Find a phrase in conversations you are allowed to access.</p>
+    <main className="workspace search-sync">
+      <aside className="search-sync__panel">
+        <header className="search-sync__header">
+          <div className="search-sync__heading">
+            <span className="eyebrow">Message search</span>
+            <h1>Search</h1>
+            <small>Find messages across your conversations.</small>
+          </div>
+
+          <span className="search-sync__header-icon" aria-hidden="true">
+            <Icon name="search" size={20} />
+          </span>
         </header>
 
-        <SearchInput
-          label="Search message history"
-          value={query}
-          onChange={(event) => setQuery(event.target.value)}
-          onClear={() => setQuery('')}
-          placeholder="Type at least 2 characters"
-          autoFocus
-        />
+        <div className="search-sync__controls">
+          <div className="search-sync__input">
+            <SearchInput
+              label="Search message history"
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              onClear={clearSearch}
+              placeholder="Search messages"
+              autoComplete="off"
+              autoFocus
+            />
+          </div>
 
-        <div className="search-scope-card">
-          <Icon name={conversationId ? 'chat' : 'search'} />
-          <span>
-            <b>{conversationId ? 'Current conversation' : 'All conversations'}</b>
-            <small>
-              {conversationId
-                ? 'Results are limited to the selected conversation.'
-                : 'Only conversations you participate in are searched.'}
-            </small>
-          </span>
+          <div className="search-sync__scope">
+            <Icon name={conversationId ? 'chat' : 'search'} size={16} />
+
+            <span>
+              {conversationId ? 'Current conversation' : 'All conversations'}
+            </span>
+          </div>
         </div>
 
-        <div className="search-help">
-          <h2>Search tips</h2>
-          <ul>
-            <li>Use specific words or short phrases.</li>
-            <li>Results are ordered from newest to oldest.</li>
-            <li>Deleted messages are never included.</li>
-          </ul>
+        <div className="search-sync__summary" aria-live="polite">
+          <span>
+            {canSearch
+              ? `${resultCount} ${resultCount === 1 ? 'result' : 'results'}`
+              : 'Type at least 2 characters'}
+          </span>
+
+          {canSearch ? (
+            <button type="button" onClick={clearSearch}>
+              Clear
+            </button>
+          ) : null}
+        </div>
+
+        {searchQuery.error ? (
+          <div className="search-sync__alert">
+            <InlineAlert tone="danger">
+              {getApiErrorMessage(searchQuery.error)}
+            </InlineAlert>
+          </div>
+        ) : null}
+
+        <div className="search-sync__content" aria-live="polite">
+          {searchQuery.isFetching ? (
+            <LoadingState rows={6} label="Searching messages" />
+          ) : null}
+
+          {!searchQuery.isFetching && !canSearch ? (
+            <div className="search-sync__empty">
+              <span className="search-sync__empty-icon">
+                <Icon name="search" size={23} />
+              </span>
+
+              <strong>Search your messages</strong>
+              <p>Enter a word or phrase to find it in your conversations.</p>
+            </div>
+          ) : null}
+
+          {!searchQuery.isFetching &&
+          canSearch &&
+          !searchQuery.error &&
+          resultCount === 0 ? (
+            <div className="search-sync__empty">
+              <span className="search-sync__empty-icon">
+                <Icon name="search" size={23} />
+              </span>
+
+              <strong>No matches found</strong>
+              <p>Try another word or a shorter phrase.</p>
+            </div>
+          ) : null}
+
+          {!searchQuery.isFetching && resultCount > 0 ? (
+            <div className="search-sync__results">
+              {searchQuery.data?.map((result) => (
+                <SearchResultCard
+                  key={result.id}
+                  result={result}
+                  query={query}
+                  onOpen={() =>
+                    navigate(routes.conversation(result.conversationId))
+                  }
+                />
+              ))}
+            </div>
+          ) : null}
         </div>
       </aside>
 
-      <section className="results-panel">
-        <header>
-          <div>
-            <span className="eyebrow">Results</span>
-            <h2>
-              {query.trim().length >= 2
-                ? `${searchQuery.data?.length ?? 0} matches`
-                : 'Start searching'}
-            </h2>
-          </div>
-        </header>
+      <section className="search-sync__preview">
+        <div className="search-sync__preview-glow" />
 
-        {searchQuery.error ? (
-          <InlineAlert tone="danger">{getApiErrorMessage(searchQuery.error)}</InlineAlert>
-        ) : null}
-        {searchQuery.isFetching ? <LoadingState rows={7} label="Searching messages" /> : null}
+        <div className="search-sync__preview-content">
+          <span className="search-sync__preview-icon">
+            <Icon name="search" size={28} />
+          </span>
 
-        {!searchQuery.isFetching && query.trim().length < 2 ? (
-          <EmptyState
-            icon="search"
-            title="Find a message"
-            description="Enter at least two characters to search your private conversation history."
-          />
-        ) : null}
+          <span className="eyebrow">Message search</span>
 
-        {!searchQuery.isFetching && query.trim().length >= 2 && searchQuery.data?.length === 0 ? (
-          <EmptyState
-            icon="search"
-            title="No matching messages"
-            description="Try a different keyword or search across all conversations."
-          />
-        ) : null}
+          <h2>Find any message again.</h2>
 
-        <div className="search-results-list">
-          {searchQuery.data?.map((result) => (
-            <SearchResultCard
-              key={result.id}
-              result={result}
-              query={query}
-              onOpen={() => navigate(routes.conversation(result.conversationId))}
-            />
-          ))}
+          <p>
+            Search your conversations, open the matching result and continue
+            exactly where you left off.
+          </p>
         </div>
       </section>
     </main>

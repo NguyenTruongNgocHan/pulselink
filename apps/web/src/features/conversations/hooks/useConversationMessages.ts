@@ -1,5 +1,14 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import {
+  useMutation,
+  useQuery,
+  useQueryClient,
+} from '@tanstack/react-query'
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+} from 'react'
 
 import { queryKeys } from '@/shared/api/queryKeys'
 
@@ -23,21 +32,48 @@ import type {
 } from '../types/conversation.types'
 import { useConversationRealtime } from './useConversationRealtime'
 
-function upsertMessage(messages: Message[], nextMessage: Message): Message[] {
-  const existingIndex = messages.findIndex((message) => message.id === nextMessage.id)
-  if (existingIndex === -1) return [...messages, nextMessage]
+function upsertMessage(
+  messages: Message[],
+  nextMessage: Message,
+): Message[] {
+  const existingIndex = messages.findIndex(
+    (message) => message.id === nextMessage.id,
+  )
 
-  return messages.map((message) => (message.id === nextMessage.id ? nextMessage : message))
+  if (existingIndex === -1) {
+    return [...messages, nextMessage]
+  }
+
+  return messages.map((message) =>
+    message.id === nextMessage.id
+      ? nextMessage
+      : message,
+  )
 }
 
-export function useConversationMessages(conversationId: string) {
+export function useConversationMessages(
+  conversationId: string,
+) {
   const queryClient = useQueryClient()
-  const [typingUsers, setTypingUsers] = useState<Record<string, string>>({})
-  const typingTimeouts = useRef<Record<string, number>>({})
+
+  const [typingUsers, setTypingUsers] = useState<
+    Record<string, string>
+  >({})
+
+  const typingTimeouts = useRef<
+    Record<string, number>
+  >({})
+
+  const lastReadMessageIdRef = useRef<
+    string | null
+  >(null)
+
+  const readRequestInFlightRef = useRef(false)
 
   const conversationQuery = useQuery({
     queryKey: queryKeys.conversation(conversationId),
-    queryFn: () => getConversation(conversationId),
+    queryFn: () =>
+      getConversation(conversationId),
     enabled: Boolean(conversationId),
   })
 
@@ -50,33 +86,46 @@ export function useConversationMessages(conversationId: string) {
   const handleRealtimeEvent = useCallback(
     (event: ConversationRealtimeEvent) => {
       if (event.type === 'TYPING') {
-        window.clearTimeout(typingTimeouts.current[event.userId])
+        window.clearTimeout(
+          typingTimeouts.current[event.userId],
+        )
+
         setTypingUsers((current) => {
           if (!event.typing) {
             const next = { ...current }
             delete next[event.userId]
             return next
           }
-          return { ...current, [event.userId]: event.displayName }
+
+          return {
+            ...current,
+            [event.userId]: event.displayName,
+          }
         })
 
         if (event.typing) {
-          typingTimeouts.current[event.userId] = window.setTimeout(() => {
-            setTypingUsers((current) => {
-              const next = { ...current }
-              delete next[event.userId]
-              return next
-            })
-          }, 4_000)
+          typingTimeouts.current[event.userId] =
+            window.setTimeout(() => {
+              setTypingUsers((current) => {
+                const next = { ...current }
+                delete next[event.userId]
+                return next
+              })
+            }, 4_000)
         }
+
         return
       }
 
       queryClient.setQueryData<Message[]>(
         queryKeys.messages(conversationId),
-        (current = []) => upsertMessage(current, event.message),
+        (current = []) =>
+          upsertMessage(current, event.message),
       )
-      void queryClient.invalidateQueries({ queryKey: queryKeys.conversations() })
+
+      void queryClient.invalidateQueries({
+        queryKey: queryKeys.conversations(),
+      })
     },
     [conversationId, queryClient],
   )
@@ -86,53 +135,137 @@ export function useConversationMessages(conversationId: string) {
     onEvent: handleRealtimeEvent,
   })
 
+  const latestMessageId =
+    messagesQuery.data?.at(-1)?.id ?? null
+
   useEffect(() => {
-    if (!conversationId || !messagesQuery.data) return
-    void markConversationRead(conversationId).then(() => {
-      void queryClient.invalidateQueries({ queryKey: queryKeys.conversations() })
-    })
-  }, [conversationId, messagesQuery.data, queryClient])
+    lastReadMessageIdRef.current = null
+    readRequestInFlightRef.current = false
+  }, [conversationId])
+
+  useEffect(() => {
+    if (
+      !conversationId ||
+      !latestMessageId ||
+      readRequestInFlightRef.current ||
+      lastReadMessageIdRef.current === latestMessageId
+    ) {
+      return
+    }
+
+    readRequestInFlightRef.current = true
+
+    void markConversationRead(conversationId)
+      .then(() => {
+        lastReadMessageIdRef.current =
+          latestMessageId
+
+        void queryClient.invalidateQueries({
+          queryKey: queryKeys.conversations(),
+        })
+      })
+      .catch((error: unknown) => {
+        console.error(
+          'Unable to mark conversation as read',
+          error,
+        )
+      })
+      .finally(() => {
+        readRequestInFlightRef.current = false
+      })
+  }, [
+    conversationId,
+    latestMessageId,
+    queryClient,
+  ])
 
   useEffect(
     () => () => {
-      Object.values(typingTimeouts.current).forEach(window.clearTimeout)
+      Object.values(
+        typingTimeouts.current,
+      ).forEach(window.clearTimeout)
     },
     [],
   )
 
   const sendMutation = useMutation({
-    mutationFn: (input: Omit<SendMessageInput, 'conversationId'>) =>
-      sendMessage({ ...input, conversationId }),
+    mutationFn: (
+      input: Omit<
+        SendMessageInput,
+        'conversationId'
+      >,
+    ) =>
+      sendMessage({
+        ...input,
+        conversationId,
+      }),
+
     onSuccess: (message) => {
       queryClient.setQueryData<Message[]>(
         queryKeys.messages(conversationId),
-        (current = []) => upsertMessage(current, message),
+        (current = []) =>
+          upsertMessage(current, message),
       )
-      void queryClient.invalidateQueries({ queryKey: queryKeys.conversations() })
+
+      void queryClient.invalidateQueries({
+        queryKey: queryKeys.conversations(),
+      })
     },
   })
 
   const uploadMutation = useMutation({
-    mutationFn: (file: File) => uploadAttachment(file, conversationId),
+    mutationFn: (file: File) =>
+      uploadAttachment(file, conversationId),
   })
 
   const editMutation = useMutation({
-    mutationFn: ({ messageId, content }: { messageId: string; content: string }) =>
+    mutationFn: ({
+      messageId,
+      content,
+    }: {
+      messageId: string
+      content: string
+    }) =>
       editMessage(messageId, content),
   })
 
-  const deleteMutation = useMutation({ mutationFn: deleteMessage })
+  const deleteMutation = useMutation({
+    mutationFn: deleteMessage,
+  })
+
   const reactMutation = useMutation({
-    mutationFn: ({ messageId, emoji }: { messageId: string; emoji: string }) =>
+    mutationFn: ({
+      messageId,
+      emoji,
+    }: {
+      messageId: string
+      emoji: string
+    }) =>
       reactToMessage(messageId, emoji),
   })
-  const removeReactionMutation = useMutation({ mutationFn: removeReaction })
-  const saveMutation = useMutation({ mutationFn: saveMessage })
-  const unsaveMutation = useMutation({ mutationFn: unsaveMessage })
 
-  const invalidateMessages = async () => {
-    await queryClient.invalidateQueries({ queryKey: queryKeys.messages(conversationId) })
-  }
+  const removeReactionMutation = useMutation({
+    mutationFn: removeReaction,
+  })
+
+  const saveMutation = useMutation({
+    mutationFn: saveMessage,
+  })
+
+  const unsaveMutation = useMutation({
+    mutationFn: unsaveMessage,
+  })
+
+  const invalidateMessages = useCallback(
+    async () => {
+      await queryClient.invalidateQueries({
+        queryKey: queryKeys.messages(
+          conversationId,
+        ),
+      })
+    },
+    [conversationId, queryClient],
+  )
 
   useEffect(() => {
     if (
@@ -148,6 +281,7 @@ export function useConversationMessages(conversationId: string) {
   }, [
     deleteMutation.isSuccess,
     editMutation.isSuccess,
+    invalidateMessages,
     reactMutation.isSuccess,
     removeReactionMutation.isSuccess,
     saveMutation.isSuccess,
