@@ -4,12 +4,31 @@ spring:
     username: sa
     password:
     driver-class-name: org.h2.Driver
+
   jpa:
     hibernate:
-      ddl-auto: none
+      ddl-auto: create-drop
+    open-in-view: false
+    properties:
+      hibernate:
+        format_sql: false
+
   flyway:
     enabled: false
+
   data:
     redis:
       repositories:
         enabled: false
+
+app:
+  storage:
+    cleanup:
+      enabled: false
+      delay-ms: 3600000
+
+logging:
+  level:
+    root: WARN
+    com.pulselink: INFO
+    org.springframework.security: WARN

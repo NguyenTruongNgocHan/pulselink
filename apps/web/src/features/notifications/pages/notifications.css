@@ -1,0 +1,445 @@
+/*
+ * PulseLink notifications
+ * Scoped to prevent conflicts with legacy notification and People styles.
+ */
+
+.notifications-sync {
+  grid-template-columns: 332px minmax(0, 1fr);
+  height: calc(100vh - 36px);
+  min-width: 0;
+  min-height: 0;
+  overflow: hidden;
+  background: var(--surface);
+}
+
+/* =========================
+   LEFT PANEL
+   ========================= */
+
+.notifications-sync__panel {
+  display: flex;
+  min-width: 0;
+  min-height: 0;
+  flex-direction: column;
+  overflow: hidden;
+  border-right: 1px solid var(--border);
+  background: color-mix(
+    in srgb,
+    var(--surface) 96%,
+    var(--surface-2)
+  );
+}
+
+.notifications-sync__header {
+  display: flex;
+  min-height: 128px;
+  flex: 0 0 auto;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 27px 18px 18px;
+  border-bottom: 1px solid
+    color-mix(in srgb, var(--border) 68%, transparent);
+}
+
+.notifications-sync__heading {
+  min-width: 0;
+}
+
+.notifications-sync__heading .eyebrow {
+  margin-bottom: 7px;
+}
+
+.notifications-sync__heading h1 {
+  margin: 0;
+  color: var(--text);
+  font-size: 1.7rem;
+  line-height: 1.1;
+  letter-spacing: -0.04em;
+}
+
+.notifications-sync__heading small {
+  display: block;
+  margin-top: 7px;
+  color: var(--muted);
+  font-size: 0.76rem;
+  line-height: 1.4;
+}
+
+/* Compact action matching People/Conversation header actions. */
+.notifications-sync__mark-all {
+  min-height: 36px;
+  flex: 0 0 auto;
+  padding: 0 11px;
+  border: 1px solid var(--border);
+  border-radius: 11px;
+  color: var(--text);
+  background: var(--surface);
+  font-size: 0.73rem;
+  font-weight: 750;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    border-color 160ms ease,
+    color 160ms ease,
+    background 160ms ease;
+}
+
+.notifications-sync__mark-all:hover:not(:disabled) {
+  border-color: color-mix(
+    in srgb,
+    var(--primary) 32%,
+    var(--border)
+  );
+  color: var(--primary);
+  background: var(--primary-soft);
+}
+
+.notifications-sync__mark-all:disabled {
+  cursor: not-allowed;
+  opacity: 0.48;
+}
+
+/* =========================
+   FILTER TABS
+   ========================= */
+
+.notifications-sync__tabs {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  flex: 0 0 auto;
+  gap: 4px;
+  margin: 13px 14px 10px;
+  padding: 4px;
+  border-radius: 13px;
+  background: var(--surface-2);
+}
+
+.notifications-sync__tabs button {
+  min-height: 36px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 10px;
+  color: var(--muted);
+  background: transparent;
+  font-size: 0.76rem;
+  font-weight: 750;
+  cursor: pointer;
+  transition:
+    color 160ms ease,
+    background 160ms ease,
+    box-shadow 160ms ease;
+}
+
+.notifications-sync__tabs button:hover {
+  color: var(--text);
+}
+
+.notifications-sync__tabs button.active {
+  color: var(--primary);
+  background: var(--surface);
+  box-shadow: 0 5px 15px
+    color-mix(in srgb, var(--text) 7%, transparent);
+}
+
+/* =========================
+   ALERT / CONTENT
+   ========================= */
+
+.notifications-sync__alert {
+  flex: 0 0 auto;
+  padding: 0 12px 10px;
+}
+
+.notifications-sync__alert .inline-alert {
+  width: 100%;
+  margin: 0;
+}
+
+.notifications-sync__content {
+  min-width: 0;
+  min-height: 0;
+  flex: 1;
+  overflow-x: hidden;
+  overflow-y: auto;
+  scrollbar-gutter: stable;
+}
+
+.notifications-sync__content > .loading-state {
+  padding: 6px 12px 20px;
+}
+
+.notifications-sync__list {
+  display: grid;
+  gap: 4px;
+  padding: 1px 8px 20px;
+}
+
+/* =========================
+   EMPTY STATE
+   ========================= */
+
+.notifications-sync__empty {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  padding: 44px 22px;
+  text-align: center;
+}
+
+.notifications-sync__empty-icon {
+  display: grid;
+  width: 50px;
+  height: 50px;
+  margin-bottom: 5px;
+  place-items: center;
+  border-radius: 15px;
+  color: var(--primary);
+  background: var(--primary-soft);
+}
+
+.notifications-sync__empty strong {
+  color: var(--text);
+  font-size: 0.96rem;
+}
+
+.notifications-sync__empty p {
+  max-width: 235px;
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.78rem;
+  line-height: 1.55;
+}
+
+/* =========================
+   NOTIFICATION ITEM
+   ========================= */
+
+.notifications-sync-item {
+  position: relative;
+  display: grid;
+  width: 100%;
+  min-width: 0;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 11px;
+  padding: 11px 10px;
+  border: 1px solid transparent;
+  border-radius: 14px;
+  color: var(--text);
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  transition:
+    border-color 160ms ease,
+    background 160ms ease,
+    transform 160ms ease;
+}
+
+.notifications-sync-item:hover {
+  border-color: var(--border);
+  background: var(--surface);
+  transform: translateY(-1px);
+}
+
+.notifications-sync-item.selected {
+  border-color: color-mix(
+    in srgb,
+    var(--primary) 32%,
+    var(--border)
+  );
+  background: linear-gradient(
+    110deg,
+    var(--primary-soft),
+    color-mix(in srgb, var(--surface) 91%, transparent)
+  );
+}
+
+.notifications-sync-item__icon {
+  display: grid;
+  width: 38px;
+  height: 38px;
+  flex: 0 0 auto;
+  place-items: center;
+  border-radius: 12px;
+  color: var(--primary);
+  background: var(--primary-soft);
+}
+
+.notifications-sync-item__body {
+  display: grid;
+  min-width: 0;
+  gap: 4px;
+}
+
+.notifications-sync-item__top {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.notifications-sync-item__top strong {
+  min-width: 0;
+  overflow: hidden;
+  color: var(--text);
+  font-size: 0.8rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.notifications-sync-item__top time {
+  flex: 0 0 auto;
+  color: var(--muted);
+  font-size: 0.64rem;
+  white-space: nowrap;
+}
+
+.notifications-sync-item__message {
+  display: block;
+  overflow: hidden;
+  color: var(--muted);
+  font-size: 0.72rem;
+  line-height: 1.35;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.notifications-sync-item__unread {
+  width: 8px;
+  height: 8px;
+  flex: 0 0 auto;
+  border-radius: 50%;
+  background: var(--primary);
+  box-shadow: 0 0 0 4px
+    color-mix(in srgb, var(--primary) 12%, transparent);
+}
+
+/* =========================
+   RIGHT PREVIEW
+   ========================= */
+
+.notifications-sync__preview {
+  position: relative;
+  display: grid;
+  min-width: 0;
+  min-height: 0;
+  place-items: center;
+  padding: 48px;
+  overflow: hidden;
+  background:
+    radial-gradient(
+      circle at 50% 31%,
+      color-mix(in srgb, var(--primary) 9%, transparent),
+      transparent 23rem
+    ),
+    linear-gradient(
+      145deg,
+      var(--surface),
+      color-mix(in srgb, var(--surface-2) 58%, var(--surface))
+    );
+}
+
+.notifications-sync__preview-glow {
+  position: absolute;
+  width: min(720px, 72vw);
+  aspect-ratio: 1;
+  border: 1px solid
+    color-mix(in srgb, var(--primary) 13%, transparent);
+  border-radius: 50%;
+  box-shadow:
+    0 0 0 70px
+      color-mix(in srgb, var(--primary) 2.5%, transparent),
+    0 0 0 140px
+      color-mix(in srgb, var(--primary) 1.5%, transparent);
+  pointer-events: none;
+}
+
+.notifications-sync__preview-content {
+  position: relative;
+  z-index: 1;
+  display: grid;
+  max-width: 650px;
+  justify-items: center;
+  gap: 13px;
+  text-align: center;
+}
+
+.notifications-sync__preview-icon {
+  display: grid;
+  width: 58px;
+  height: 58px;
+  margin-bottom: 6px;
+  place-items: center;
+  border: 1px solid
+    color-mix(in srgb, var(--primary) 17%, var(--border));
+  border-radius: 18px;
+  color: var(--primary);
+  background: color-mix(
+    in srgb,
+    var(--surface) 82%,
+    transparent
+  );
+  box-shadow: var(--shadow-soft);
+}
+
+.notifications-sync__preview-content h2 {
+  max-width: 700px;
+  margin: 0;
+  color: var(--text);
+  font-size: clamp(2rem, 3vw, 2.75rem);
+  line-height: 1.12;
+  letter-spacing: -0.05em;
+}
+
+.notifications-sync__preview-content time {
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
+.notifications-sync__preview-content p {
+  max-width: 560px;
+  margin: 3px 0 0;
+  color: var(--muted);
+  font-size: 0.98rem;
+  line-height: 1.7;
+}
+
+.notifications-sync__preview-content .button {
+  margin-top: 7px;
+}
+
+/* =========================
+   RESPONSIVE
+   ========================= */
+
+@media (max-width: 980px) {
+  .notifications-sync {
+    grid-template-columns: minmax(300px, 360px) minmax(0, 1fr);
+  }
+
+  .notifications-sync__preview {
+    padding: 30px;
+  }
+
+  .notifications-sync__preview-content h2 {
+    font-size: 2rem;
+  }
+}
+
+@media (max-width: 760px) {
+  .notifications-sync {
+    display: block;
+    height: calc(100vh - 36px);
+  }
+
+  .notifications-sync__panel {
+    height: 100%;
+    border-right: 0;
+  }
+
+  .notifications-sync__preview {
+    display: none;
+  }
+}

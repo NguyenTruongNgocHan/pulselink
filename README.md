@@ -6,7 +6,8 @@ PulseLink is a real-time social messaging platform implemented as a React + Spri
 
 - **Design baseline:** complete
 - **Phase 0 — Project skeleton:** implemented
-- **Next:** Phase 1 — Authentication
+- **Phase 1 — Authentication:** implemented (register/login/refresh/logout/profile), not yet run against a live Postgres/CI by a human — see `docs/COMMIT_GUIDE.md` before you trust it
+- **Next:** Phase 2 — Friends and blocking
 
 ## Stack
 
