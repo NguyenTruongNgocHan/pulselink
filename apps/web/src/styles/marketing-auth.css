@@ -1,0 +1,309 @@
+/*
+ * PulseLink marketing and authentication presentation layer.
+ * Imported after the legacy styles so these rules can refine visual layout
+ * without changing application logic or feature-specific styles.
+ */
+
+:root {
+  --marketing-header-height: 76px;
+  --marketing-max-width: 1180px;
+  --marketing-panel-border: color-mix(
+    in srgb,
+    var(--border) 82%,
+    transparent
+  );
+  --marketing-soft-bg: color-mix(
+    in srgb,
+    var(--surface) 76%,
+    var(--bg)
+  );
+  --marketing-elevated-shadow: 0 28px 80px rgba(27, 31, 50, 0.12);
+}
+
+:root[data-theme='dark'] {
+  --marketing-elevated-shadow: 0 32px 90px rgba(0, 0, 0, 0.42);
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* Landing */
+.landing-page {
+  min-height: 100vh;
+  overflow-x: clip;
+  background:
+    radial-gradient(
+      circle at 73% 11%,
+      color-mix(in srgb, var(--primary) 9%, transparent),
+      transparent 29%
+    ),
+    linear-gradient(
+      180deg,
+      color-mix(in srgb, var(--bg) 96%, var(--surface)),
+      var(--bg)
+    );
+}
+
+/* Header */
+.landing-header {
+  position: sticky;
+  z-index: 20;
+  top: 0;
+  border-bottom: 1px solid
+    color-mix(in srgb, var(--border) 68%, transparent);
+  background: color-mix(in srgb, var(--bg) 82%, transparent);
+  box-shadow: 0 1px 0
+    color-mix(in srgb, var(--surface) 55%, transparent);
+  backdrop-filter: blur(22px) saturate(145%);
+  -webkit-backdrop-filter: blur(22px) saturate(145%);
+}
+
+.landing-nav {
+  display: grid;
+  width: min(var(--marketing-max-width), calc(100% - 48px));
+  height: var(--marketing-header-height);
+  grid-template-columns:
+    minmax(190px, 1fr)
+    auto
+    minmax(190px, 1fr);
+  align-items: center;
+  gap: 32px;
+  border: 0;
+}
+
+.landing-brand {
+  width: fit-content;
+}
+
+.landing-brand .mini-logo {
+  transition: transform 180ms ease;
+}
+
+.landing-brand:hover .mini-logo {
+  transform: translateY(-1px) rotate(-3deg);
+}
+
+.landing-brand .brand-name {
+  font-size: 1.7rem;
+  letter-spacing: -0.055em;
+}
+
+.landing-navigation {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 5px;
+  border: 1px solid
+    color-mix(in srgb, var(--border) 74%, transparent);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--surface) 66%, transparent);
+  box-shadow: 0 8px 24px
+    color-mix(in srgb, var(--text) 4%, transparent);
+}
+
+.landing-navigation a {
+  position: relative;
+  padding: 9px 16px;
+  border-radius: 999px;
+  color: var(--muted);
+  font-size: 0.86rem;
+  font-weight: 700;
+  transition:
+    color 180ms ease,
+    background 180ms ease,
+    transform 180ms ease;
+}
+
+.landing-navigation a:hover {
+  color: var(--text);
+  background: var(--surface-2);
+  transform: translateY(-1px);
+}
+
+.landing-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+}
+
+.landing-actions .theme-control {
+  width: 40px;
+  height: 40px;
+  justify-content: center;
+  padding: 0;
+  border-color: transparent;
+  border-radius: 12px;
+  background: transparent;
+  transition:
+    border-color 180ms ease,
+    background 180ms ease,
+    transform 180ms ease;
+}
+
+.landing-actions .theme-control:hover {
+  border-color: var(--border);
+  background: var(--surface-2);
+  transform: translateY(-1px);
+}
+
+.landing-sign-in {
+  display: inline-flex;
+  min-height: 40px;
+  align-items: center;
+  justify-content: center;
+  padding: 0 13px;
+  border-radius: 11px;
+  color: var(--muted);
+  font-size: 0.88rem;
+  font-weight: 720;
+  transition:
+    color 180ms ease,
+    background 180ms ease;
+}
+
+.landing-sign-in:hover {
+  color: var(--text);
+  background: var(--surface-2);
+}
+
+.landing-get-started {
+  min-height: 44px;
+  padding-inline: 18px;
+  border-radius: 13px;
+  box-shadow: 0 10px 24px
+    color-mix(in srgb, var(--primary) 20%, transparent);
+}
+
+.landing-get-started:hover {
+  box-shadow: 0 14px 30px
+    color-mix(in srgb, var(--primary) 27%, transparent);
+}
+
+/* Footer */
+.landing-footer {
+  min-height: 0;
+  padding: 0;
+  border-top: 1px solid
+    color-mix(in srgb, var(--border) 72%, transparent);
+  background: color-mix(in srgb, var(--surface) 18%, var(--bg));
+}
+
+.landing-footer__inner {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding-block: 34px 26px;
+}
+
+.landing-footer__brand {
+  width: fit-content;
+}
+
+.landing-footer__brand .brand-name {
+  font-size: 1.55rem;
+  letter-spacing: -0.045em;
+}
+
+.landing-footer__meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 32px;
+  padding-top: 18px;
+  border-top: 1px solid
+    color-mix(in srgb, var(--border) 70%, transparent);
+}
+
+.landing-footer__meta p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.88rem;
+  line-height: 1.5;
+}
+
+.landing-footer__meta p:last-child {
+  flex: none;
+  text-align: right;
+}
+
+/* Responsive */
+@media (max-width: 980px) {
+  .landing-nav {
+    grid-template-columns: 1fr auto;
+  }
+
+  .landing-navigation {
+    display: none;
+  }
+}
+
+@media (max-width: 680px) {
+  :root {
+    --marketing-header-height: 68px;
+  }
+
+  .landing-nav {
+    width: min(100% - 28px, var(--marketing-max-width));
+    gap: 12px;
+  }
+
+  .landing-brand .brand-name {
+    font-size: 1.42rem;
+  }
+
+  .landing-actions {
+    gap: 4px;
+  }
+
+  .landing-sign-in {
+    display: none;
+  }
+
+  .landing-get-started {
+    min-height: 40px;
+    padding-inline: 13px;
+    font-size: 0.84rem;
+  }
+
+  .landing-footer__inner {
+    gap: 18px;
+    padding-block: 30px 22px;
+  }
+
+  .landing-footer__meta {
+    gap: 20px;
+  }
+
+  .landing-footer__meta p {
+    font-size: 0.82rem;
+  }
+}
+
+@media (max-width: 520px) {
+  .landing-footer__meta {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .landing-footer__meta p:last-child {
+    text-align: left;
+  }
+}
+
+@media (max-width: 420px) {
+  .landing-actions .theme-control {
+    display: none;
+  }
+}

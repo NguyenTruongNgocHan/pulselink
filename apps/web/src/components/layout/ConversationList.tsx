@@ -1,83 +1,109 @@
-import { NavLink } from "react-router-dom";
+import { useMemo, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 
-import { conversations } from "../../data/conversations";
-import { Avatar } from "../ui/Avatar";
-import { Icon } from "../ui/Icon";
+import { ConversationListItem } from '@/features/conversations/components/ConversationListItem'
+import { useConversations } from '@/features/conversations/hooks/useConversations'
+import { EmptyState } from '@/shared/components/feedback/EmptyState'
+import { InlineAlert } from '@/shared/components/feedback/InlineAlert'
+import { LoadingState } from '@/shared/components/feedback/LoadingState'
+import { SearchInput } from '@/shared/components/form/SearchInput'
+import { routes } from '@/shared/constants/routes'
+import { getApiErrorMessage } from '@/shared/utils/apiError'
 
-function getConversationPath(
-  conversationId: string,
-  kind: "direct" | "group",
-) {
-  if (kind === "group") {
-    return `/app/groups/${conversationId}`;
-  }
+import { Icon } from '../ui/Icon'
 
-  return `/app/conversations/${conversationId}`;
-}
+type ConversationFilter = 'ALL' | 'UNREAD' | 'GROUPS'
 
 export function ConversationList() {
-  return (
-    <aside className="list-panel">
-      <header>
-        <div>
-          <h1>Messages</h1>
-          <small>3 unread</small>
-        </div>
+  const navigate = useNavigate()
+  const conversationsQuery = useConversations()
+  const [query, setQuery] = useState('')
+  const [filter, setFilter] = useState<ConversationFilter>('ALL')
 
+  const conversations = useMemo(() => {
+    const normalizedQuery = query.trim().toLowerCase()
+    return (conversationsQuery.data ?? []).filter((conversation) => {
+      const matchesSearch =
+        !normalizedQuery ||
+        conversation.name.toLowerCase().includes(normalizedQuery) ||
+        conversation.preview?.toLowerCase().includes(normalizedQuery)
+
+      const matchesFilter =
+        filter === 'ALL' ||
+        (filter === 'UNREAD' && conversation.unreadCount > 0) ||
+        (filter === 'GROUPS' && conversation.type === 'GROUP')
+
+      return matchesSearch && matchesFilter
+    })
+  }, [conversationsQuery.data, filter, query])
+
+  return (
+    <aside className="list-panel conversation-panel">
+      <header className="panel-heading">
+        <div>
+          <span className="eyebrow">Realtime inbox</span>
+          <h1>Messages</h1>
+          <small>{conversationsQuery.data?.length ?? 0} conversations</small>
+        </div>
         <button
           className="square primary"
           type="button"
-          aria-label="Create conversation"
+          aria-label="Create a group"
+          onClick={() => navigate(routes.createGroup)}
         >
           <Icon name="edit" />
         </button>
       </header>
 
-      <label className="searchbox">
-        <Icon name="search" />
-        <input placeholder="Search conversations" />
-      </label>
+      <SearchInput
+        label="Search conversations"
+        value={query}
+        onChange={(event) => setQuery(event.target.value)}
+        onClear={() => setQuery('')}
+        placeholder="Search conversations"
+      />
 
-      <div className="tabs">
-        <button className="active" type="button">
-          All
-        </button>
-        <button type="button">Unread</button>
-        <button type="button">Groups</button>
+      <div className="tabs" role="tablist" aria-label="Conversation filters">
+        {(['ALL', 'UNREAD', 'GROUPS'] as const).map((item) => (
+          <button
+            type="button"
+            key={item}
+            className={filter === item ? 'active' : undefined}
+            onClick={() => setFilter(item)}
+            role="tab"
+            aria-selected={filter === item}
+          >
+            {item === 'ALL' ? 'All' : item === 'UNREAD' ? 'Unread' : 'Groups'}
+          </button>
+        ))}
       </div>
 
+      {conversationsQuery.error ? (
+        <InlineAlert tone="danger">{getApiErrorMessage(conversationsQuery.error)}</InlineAlert>
+      ) : null}
+
       <div className="conversation-list">
-        {conversations.map((conversation) => (
-          <NavLink
-            key={conversation.id}
-            to={getConversationPath(
-              conversation.id,
-              conversation.kind,
-            )}
-            className={({ isActive }) =>
-              isActive ? "active" : undefined
+        {conversationsQuery.isLoading ? (
+          <LoadingState label="Loading conversations" rows={7} />
+        ) : null}
+
+        {!conversationsQuery.isLoading && conversations.length === 0 ? (
+          <EmptyState
+            compact
+            icon="chat"
+            title={query || filter !== 'ALL' ? 'No matching conversations' : 'No conversations yet'}
+            description={
+              query || filter !== 'ALL'
+                ? 'Change your search or filter to see more conversations.'
+                : 'Open People to start a private chat or create a group.'
             }
-          >
-            <Avatar
-              initials={conversation.initials}
-              tone={conversation.avatarTone}
-              online={conversation.timestamp !== "1h"}
-            />
+          />
+        ) : null}
 
-            <span>
-              <b>{conversation.title}</b>
-              <small>{conversation.preview}</small>
-            </span>
-
-            <time>
-              {conversation.timestamp}
-              {conversation.unreadCount > 0 ? (
-                <em>{conversation.unreadCount}</em>
-              ) : null}
-            </time>
-          </NavLink>
+        {conversations.map((conversation) => (
+          <ConversationListItem key={conversation.id} conversation={conversation} />
         ))}
       </div>
     </aside>
-  );
+  )
 }

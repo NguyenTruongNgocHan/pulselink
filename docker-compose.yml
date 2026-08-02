@@ -35,9 +35,19 @@ services:
       DB_USERNAME: postgres
       DB_PASSWORD: postgres
       REDIS_URL: redis://redis:6379
-      CORS_ALLOWED_ORIGINS: http://localhost:5173
+      CORS_ALLOWED_ORIGINS: http://localhost:5173,http://localhost,http://localhost:5174
+      STORAGE_PATH: /data/uploads
+      JWT_SECRET: local-development-secret-key-at-least-32-bytes-long
     ports:
       - "8080:8080"
+    volumes:
+      - uploads_data:/data/uploads
+    healthcheck:
+      test: ["CMD", "curl", "--fail", "--silent", "http://localhost:8080/actuator/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 20
+      start_period: 30s
     depends_on:
       postgres:
         condition: service_healthy
@@ -51,9 +61,16 @@ services:
         VITE_API_BASE_URL: http://localhost:8080
     ports:
       - "5173:80"
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost/"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
     depends_on:
-      - api
+      api:
+        condition: service_healthy
 
 volumes:
   postgres_data:
   redis_data:
+  uploads_data:

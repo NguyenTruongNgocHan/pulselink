@@ -40,6 +40,7 @@ export type IconName =
   | 'download'
   | 'trash'
   | 'edit'
+  | 'loader'
 
 const paths: Record<IconName, ReactNode> = {
   home: (
@@ -260,12 +261,19 @@ const paths: Record<IconName, ReactNode> = {
   edit: (
     <path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L8 18l-4 1 1-4z" />
   ),
+
+  loader: (
+    <>
+      <path d="M21 12a9 9 0 1 1-2.64-6.36" />
+      <path d="M21 3v6h-6" />
+    </>
+  ),
 }
 
 interface IconProps {
   name: IconName
   size?: number
-  className?: string
+  className?: string | undefined
 }
 
 export function Icon({

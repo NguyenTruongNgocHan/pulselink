@@ -1,22 +1,26 @@
-export type AvatarSize = "sm" | "md" | "lg" | "xl";
+export type AvatarSize = 'sm' | 'md' | 'lg' | 'xl'
 
 interface AvatarProps {
-  initials: string;
-  tone?: string;
-  online?: boolean;
-  size?: AvatarSize;
+  initials: string
+  src?: string | null | undefined
+  alt?: string | undefined
+  tone?: string | undefined
+  online?: boolean | undefined
+  size?: AvatarSize | undefined
 }
 
 export function Avatar({
   initials,
-  tone = "violet",
+  src,
+  alt = '',
+  tone = 'violet',
   online = false,
-  size = "md",
+  size = 'md',
 }: AvatarProps) {
   return (
     <span className={`avatar avatar-${tone} avatar-${size}`}>
-      {initials}
+      {src ? <img src={src} alt={alt} loading="lazy" /> : initials}
       {online ? <i aria-label="Online" /> : null}
     </span>
-  );
+  )
 }
