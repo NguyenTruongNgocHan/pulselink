@@ -28,7 +28,7 @@ export function AppSidebar() {
   const [accountMenuOpen, setAccountMenuOpen] = useState(false)
 
   const primaryNavigation: NavigationItem[] = [
-    { to: routes.conversations, label: 'Conversations', icon: 'chat' },
+    { to: routes.conversations, label: 'Messages', icon: 'chat' },
     { to: routes.people, label: 'People', icon: 'users' },
     { to: routes.search, label: 'Search', icon: 'search' },
     {
@@ -41,8 +41,8 @@ export function AppSidebar() {
   ]
 
   const secondaryNavigation: NavigationItem[] = [
-    { to: routes.savedMessages, label: 'Saved messages', icon: 'bookmark' },
-    { to: routes.reports, label: 'My reports', icon: 'flag' },
+    { to: routes.savedMessages, label: 'Saved', icon: 'bookmark' },
+    { to: routes.reports, label: 'Reports', icon: 'flag' },
     { to: routes.privacy, label: 'Privacy', icon: 'shield' },
   ]
 
@@ -62,9 +62,11 @@ export function AppSidebar() {
       <NavLink
         key={item.to}
         to={item.to}
-        className={({ isActive }) => (isActive ? 'active' : undefined)}
+        className={({ isActive }) => (isActive ? 'nav-link active' : 'nav-link')}
       >
-        <Icon name={item.icon} />
+        <span className="nav-link__icon" aria-hidden="true">
+          <Icon name={item.icon} />
+        </span>
         <span>{item.label}</span>
         {item.badge ? <em>{item.badge > 99 ? '99+' : item.badge}</em> : null}
       </NavLink>
@@ -78,21 +80,30 @@ export function AppSidebar() {
           <ThemeControl compact />
         </div>
 
-        <nav aria-label="Main navigation">{renderNavigation(primaryNavigation)}</nav>
+        <nav className="app-sidebar__nav" aria-label="Main navigation">
+          {renderNavigation(primaryNavigation)}
+        </nav>
 
         <div className="sidebar-divider" />
-        <nav aria-label="Account tools">{renderNavigation(secondaryNavigation)}</nav>
+
+        <nav className="app-sidebar__nav app-sidebar__nav--secondary" aria-label="Account tools">
+          {renderNavigation(secondaryNavigation)}
+        </nav>
 
         {isStaff ? (
           <div className="sidebar-staff-card">
-            <span>
+            <span className="sidebar-staff-card__icon">
               <Icon name="shield" size={18} />
             </span>
             <div>
               <b>Staff workspace</b>
               <small>{user?.role.replace('_', ' ')}</small>
             </div>
-            <button type="button" onClick={() => navigate(routes.admin)} aria-label="Open admin portal">
+            <button
+              type="button"
+              onClick={() => navigate(routes.admin)}
+              aria-label="Open admin portal"
+            >
               <Icon name="chevron" size={16} />
             </button>
           </div>
@@ -102,7 +113,7 @@ export function AppSidebar() {
       <div className="sidebar-user">
         <span className="connection">
           <i />
-          Connected · Realtime
+          Connected
         </span>
 
         <button

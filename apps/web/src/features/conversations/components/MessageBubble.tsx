@@ -31,13 +31,34 @@ export function MessageBubble({
   const isDeleted = Boolean(message.deletedAt || message.moderatedAt)
 
   const submitEdit = async () => {
-    if (!draft.trim() || draft.trim() === message.content) {
+    const nextContent = draft.trim()
+
+    if (!nextContent || nextContent === message.content) {
       setIsEditing(false)
       return
     }
-    await onEdit(draft.trim())
+
+    await onEdit(nextContent)
     setIsEditing(false)
   }
+
+  const deliveryLabel =
+    isMine && message.receipts.length > 0 ? (
+      <span
+        className="message-delivery message-delivery--seen"
+        title={`Seen by ${message.receipts
+          .map((receipt) => receipt.displayName)
+          .join(', ')}`}
+      >
+        <span aria-hidden="true">✓✓</span>
+        Seen
+      </span>
+    ) : isMine ? (
+      <span className="message-delivery" title="Sent">
+        <span aria-hidden="true">✓</span>
+        Sent
+      </span>
+    ) : null
 
   return (
     <article
@@ -48,15 +69,27 @@ export function MessageBubble({
       {!isMine ? (
         <Avatar
           initials={getInitials(message.senderName)}
+          src={message.senderAvatarUrl}
+          alt=""
           tone="violet"
           size="sm"
         />
       ) : null}
 
       <div className="message-cluster">
-        {!isMine ? <strong className="message-author">{message.senderName}</strong> : null}
+        {!isMine ? (
+          <strong className="message-author">{message.senderName}</strong>
+        ) : null}
 
-        <div className={isDeleted ? 'message-bubble message-bubble--deleted' : 'message-bubble'}>
+        <div
+          className={[
+            'message-bubble',
+            isDeleted ? 'message-bubble--deleted' : '',
+            isEditing ? 'message-bubble--editing' : '',
+          ]
+            .filter(Boolean)
+            .join(' ')}
+        >
           {isEditing ? (
             <div className="message-edit-form">
               <textarea
@@ -65,6 +98,7 @@ export function MessageBubble({
                 maxLength={4_000}
                 autoFocus
               />
+
               <div>
                 <button type="button" onClick={() => setIsEditing(false)}>
                   Cancel
@@ -78,8 +112,8 @@ export function MessageBubble({
             <p>
               {isDeleted
                 ? message.moderatedAt
-                  ? 'This message was removed by moderation.'
-                  : 'This message was deleted.'
+                  ? 'Removed by moderation'
+                  : 'Message deleted'
                 : message.content}
             </p>
           )}
@@ -92,16 +126,31 @@ export function MessageBubble({
                   href={attachment.downloadUrl}
                   target="_blank"
                   rel="noreferrer"
-                  className={attachment.mimeType.startsWith('image/') ? 'image-attachment' : 'file-attachment'}
+                  className={
+                    attachment.mimeType.startsWith('image/')
+                      ? 'image-attachment'
+                      : 'file-attachment'
+                  }
                 >
                   {attachment.mimeType.startsWith('image/') ? (
-                    <img src={attachment.downloadUrl} alt={attachment.fileName} />
+                    <img
+                      src={attachment.downloadUrl}
+                      alt={attachment.fileName}
+                    />
                   ) : (
                     <>
-                      <Icon name="file" />
+                      <span className="file-attachment__icon">
+                        <Icon name="file" />
+                      </span>
                       <span>
                         <b>{attachment.fileName}</b>
-                        <small>{Math.max(1, Math.round(attachment.sizeBytes / 1024))} KB</small>
+                        <small>
+                          {Math.max(
+                            1,
+                            Math.round(attachment.sizeBytes / 1024),
+                          )}{' '}
+                          KB
+                        </small>
                       </span>
                       <Icon name="download" size={17} />
                     </>
@@ -114,14 +163,8 @@ export function MessageBubble({
 
         <div className="message-meta">
           <time>{formatMessageTime(message.createdAt)}</time>
-          {message.editedAt ? <span>edited</span> : null}
-          {isMine && message.receipts.length > 0 ? (
-            <span title={`Seen by ${message.receipts.map((receipt) => receipt.displayName).join(', ')}`}>
-              ✓✓ Seen
-            </span>
-          ) : isMine ? (
-            <span>✓ Sent</span>
-          ) : null}
+          {message.editedAt ? <span>Edited</span> : null}
+          {deliveryLabel}
         </div>
 
         {!isDeleted && message.reactions.length > 0 ? (
@@ -140,7 +183,11 @@ export function MessageBubble({
         ) : null}
 
         {showActions && !isDeleted ? (
-          <div className={`message-actions ${isMine ? 'message-actions--mine' : ''}`}>
+          <div
+            className={`message-actions ${
+              isMine ? 'message-actions--mine' : ''
+            }`}
+          >
             {quickReactions.map((emoji) => (
               <button
                 type="button"
@@ -151,19 +198,33 @@ export function MessageBubble({
                 {emoji}
               </button>
             ))}
+
             <button
               type="button"
-              aria-label={message.savedByMe ? 'Remove from saved messages' : 'Save message'}
+              aria-label={
+                message.savedByMe
+                  ? 'Remove from saved messages'
+                  : 'Save message'
+              }
               onClick={() => void onToggleSave()}
             >
               <Icon name="bookmark" size={16} />
             </button>
+
             {isMine ? (
               <>
-                <button type="button" aria-label="Edit message" onClick={() => setIsEditing(true)}>
+                <button
+                  type="button"
+                  aria-label="Edit message"
+                  onClick={() => setIsEditing(true)}
+                >
                   <Icon name="edit" size={16} />
                 </button>
-                <button type="button" aria-label="Delete message" onClick={() => void onDelete()}>
+                <button
+                  type="button"
+                  aria-label="Delete message"
+                  onClick={() => void onDelete()}
+                >
                   <Icon name="trash" size={16} />
                 </button>
               </>

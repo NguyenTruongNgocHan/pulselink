@@ -22,6 +22,7 @@ export function ConversationList() {
 
   const conversations = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase()
+
     return (conversationsQuery.data ?? []).filter((conversation) => {
       const matchesSearch =
         !normalizedQuery ||
@@ -39,14 +40,18 @@ export function ConversationList() {
 
   return (
     <aside className="list-panel conversation-panel">
-      <header className="panel-heading">
+      <header className="panel-heading conversation-panel__heading">
         <div>
           <span className="eyebrow">Realtime inbox</span>
           <h1>Messages</h1>
-          <small>{conversationsQuery.data?.length ?? 0} conversations</small>
+          <small>
+            {conversationsQuery.data?.length ?? 0}{' '}
+            {(conversationsQuery.data?.length ?? 0) === 1 ? 'conversation' : 'conversations'}
+          </small>
         </div>
+
         <button
-          className="square primary"
+          className="square primary conversation-panel__create"
           type="button"
           aria-label="Create a group"
           onClick={() => navigate(routes.createGroup)}
@@ -55,27 +60,29 @@ export function ConversationList() {
         </button>
       </header>
 
-      <SearchInput
-        label="Search conversations"
-        value={query}
-        onChange={(event) => setQuery(event.target.value)}
-        onClear={() => setQuery('')}
-        placeholder="Search conversations"
-      />
+      <div className="conversation-panel__controls">
+        <SearchInput
+          label="Search conversations"
+          value={query}
+          onChange={(event) => setQuery(event.target.value)}
+          onClear={() => setQuery('')}
+          placeholder="Search messages"
+        />
 
-      <div className="tabs" role="tablist" aria-label="Conversation filters">
-        {(['ALL', 'UNREAD', 'GROUPS'] as const).map((item) => (
-          <button
-            type="button"
-            key={item}
-            className={filter === item ? 'active' : undefined}
-            onClick={() => setFilter(item)}
-            role="tab"
-            aria-selected={filter === item}
-          >
-            {item === 'ALL' ? 'All' : item === 'UNREAD' ? 'Unread' : 'Groups'}
-          </button>
-        ))}
+        <div className="tabs conversation-tabs" role="tablist" aria-label="Conversation filters">
+          {(['ALL', 'UNREAD', 'GROUPS'] as const).map((item) => (
+            <button
+              type="button"
+              key={item}
+              className={filter === item ? 'active' : undefined}
+              onClick={() => setFilter(item)}
+              role="tab"
+              aria-selected={filter === item}
+            >
+              {item === 'ALL' ? 'All' : item === 'UNREAD' ? 'Unread' : 'Groups'}
+            </button>
+          ))}
+        </div>
       </div>
 
       {conversationsQuery.error ? (
@@ -91,11 +98,11 @@ export function ConversationList() {
           <EmptyState
             compact
             icon="chat"
-            title={query || filter !== 'ALL' ? 'No matching conversations' : 'No conversations yet'}
+            title={query || filter !== 'ALL' ? 'Nothing found' : 'No conversations yet'}
             description={
               query || filter !== 'ALL'
-                ? 'Change your search or filter to see more conversations.'
-                : 'Open People to start a private chat or create a group.'
+                ? 'Try another search or filter.'
+                : 'New conversations will appear here.'
             }
           />
         ) : null}

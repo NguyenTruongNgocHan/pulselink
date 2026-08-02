@@ -9,23 +9,26 @@ export function ConversationEmptyPage() {
 
   return (
     <section className="empty-canvas conversation-empty">
-      <div className="empty-icon">
-        <Icon name="chat" size={34} />
+      <div className="conversation-empty__visual" aria-hidden="true">
+        <span className="empty-icon">
+          <Icon name="chat" size={32} />
+        </span>
       </div>
-      <span className="eyebrow">Private by design</span>
-      <h2>Choose a conversation</h2>
-      <p>Select a conversation from the list or start a new one with someone you trust.</p>
+
+      <span className="eyebrow">PulseLink messages</span>
+      <h2>Your conversations, in one place.</h2>
+      <p>Pick up where you left off, or start something new.</p>
+
       <div className="conversation-empty__actions">
         <Button onClick={() => navigate(routes.people)}>
           <Icon name="plus" />
-          New conversation
+          New message
         </Button>
         <Button variant="secondary" onClick={() => navigate(routes.createGroup)}>
           <Icon name="group" />
-          Create group
+          New group
         </Button>
       </div>
-      <small>Your messages stay between you and the people you choose.</small>
     </section>
   )
 }

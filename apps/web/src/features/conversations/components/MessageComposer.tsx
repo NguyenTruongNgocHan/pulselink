@@ -33,28 +33,46 @@ export function MessageComposer({
     setContent(value)
     onTypingChange(Boolean(value.trim()))
 
-    if (typingTimeout.current) window.clearTimeout(typingTimeout.current)
-    typingTimeout.current = window.setTimeout(() => onTypingChange(false), 1_500)
+    if (typingTimeout.current) {
+      window.clearTimeout(typingTimeout.current)
+    }
+
+    typingTimeout.current = window.setTimeout(
+      () => onTypingChange(false),
+      1_500,
+    )
   }
 
   const handleFile = async (file?: File) => {
     if (!file) return
+
     setError(null)
+
     try {
       const uploaded = await onUpload(file)
       setAttachments((current) => [...current, uploaded])
     } catch (uploadError) {
       setError(getApiErrorMessage(uploadError))
     } finally {
-      if (inputRef.current) inputRef.current.value = ''
+      if (inputRef.current) {
+        inputRef.current.value = ''
+      }
     }
   }
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
-    if ((!content.trim() && attachments.length === 0) || disabled || isSending) return
+
+    if (
+      (!content.trim() && attachments.length === 0) ||
+      disabled ||
+      isSending
+    ) {
+      return
+    }
 
     setError(null)
+
     try {
       await onSend(
         content.trim(),
@@ -76,8 +94,13 @@ export function MessageComposer({
         <div className="composer-attachments">
           {attachments.map((attachment) => (
             <span key={attachment.id}>
-              <Icon name={attachment.mimeType.startsWith('image/') ? 'image' : 'file'} size={16} />
-              {attachment.fileName}
+              <Icon
+                name={
+                  attachment.mimeType.startsWith('image/') ? 'image' : 'file'
+                }
+                size={16}
+              />
+              <span>{attachment.fileName}</span>
               <button
                 type="button"
                 aria-label={`Remove ${attachment.fileName}`}
@@ -95,30 +118,45 @@ export function MessageComposer({
       ) : null}
 
       <form className="composer-bar" onSubmit={handleSubmit}>
-        <label className="composer-file-button" aria-label="Attach a file">
-          <Icon name="paperclip" />
+        <label
+          className={`composer-file-button ${
+            isUploading ? 'is-busy' : ''
+          }`}
+          aria-label={isUploading ? 'Uploading attachment' : 'Attach a file'}
+        >
+          <Icon name={isUploading ? 'loader' : 'paperclip'} />
           <input
             ref={inputRef}
+            className="composer-file-input"
             type="file"
             accept="image/jpeg,image/png,image/webp,image/gif,application/pdf,text/plain,.doc,.docx"
             disabled={disabled || isUploading || attachments.length >= 4}
-            onChange={(event) => void handleFile(event.target.files?.[0])}
+            onChange={(event) =>
+              void handleFile(event.target.files?.[0])
+            }
           />
         </label>
-        <div>
+
+        <div className="composer-input">
           <input
             value={content}
             onChange={(event) => handleContentChange(event.target.value)}
-            placeholder={disabled ? 'This conversation is closed' : 'Write a message'}
+            placeholder={
+              disabled ? 'This conversation is closed' : 'Write a message…'
+            }
             maxLength={4_000}
             disabled={disabled}
             aria-label="Message"
           />
-          <span className="composer-count">{content.length}/4000</span>
+
+          {content.length > 0 ? (
+            <span className="composer-count">{content.length}/4000</span>
+          ) : null}
         </div>
+
         <button
           type="submit"
-          className="square primary"
+          className={`composer-send ${isSending ? 'is-busy' : ''}`}
           disabled={
             disabled ||
             isSending ||
@@ -127,7 +165,7 @@ export function MessageComposer({
           }
           aria-label="Send message"
         >
-          <Icon name="send" />
+          <Icon name={isSending ? 'loader' : 'send'} />
         </button>
       </form>
     </div>

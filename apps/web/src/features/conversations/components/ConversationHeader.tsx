@@ -18,45 +18,62 @@ export function ConversationHeader({
   typingNames,
 }: ConversationHeaderProps) {
   const navigate = useNavigate()
-  const typingLabel =
+
+  const statusLabel =
     typingNames.length > 0
-      ? `${typingNames.slice(0, 2).join(', ')} ${typingNames.length === 1 ? 'is' : 'are'} typing…`
-      : isRealtimeConnected
-        ? 'Realtime connected'
-        : 'Reconnecting…'
+      ? `${typingNames.slice(0, 2).join(', ')} ${
+          typingNames.length === 1 ? 'is' : 'are'
+        } typing…`
+      : conversation.type === 'GROUP'
+        ? `${conversation.memberCount} members`
+        : isRealtimeConnected
+          ? 'Active now'
+          : 'Connecting…'
 
   return (
     <header className="pane-header conversation-header">
-      <Avatar
-        initials={getInitials(conversation.name)}
-        tone="violet"
-        online={isRealtimeConnected}
-      />
-      <div className="conversation-header__identity">
-        <b>{conversation.name}</b>
-        <small className={typingNames.length > 0 ? 'typing-label' : undefined}>
-          {typingLabel}
-        </small>
+      <div className="conversation-header__profile">
+        <Avatar
+          initials={getInitials(conversation.name)}
+          src={conversation.avatarUrl}
+          alt=""
+          tone="violet"
+          online={conversation.type === 'DIRECT' && isRealtimeConnected}
+        />
+
+        <div className="conversation-header__identity">
+          <b>{conversation.name}</b>
+          <small className={typingNames.length > 0 ? 'typing-label' : undefined}>
+            {statusLabel}
+          </small>
+        </div>
       </div>
-      <span className="spacer" />
-      <button
-        type="button"
-        className="icon-button"
-        aria-label="Search this conversation"
-        onClick={() => navigate(`${routes.search}?conversationId=${conversation.id}`)}
-      >
-        <Icon name="search" />
-      </button>
-      {conversation.type === 'GROUP' ? (
+
+      <div className="conversation-header__actions">
         <button
           type="button"
           className="icon-button"
-          aria-label="View group details"
-          onClick={() => navigate(routes.groupDetails(conversation.id))}
+          aria-label="Search this conversation"
+          title="Search this conversation"
+          onClick={() =>
+            navigate(`${routes.search}?conversationId=${conversation.id}`)
+          }
         >
-          <Icon name="info" />
+          <Icon name="search" />
         </button>
-      ) : null}
+
+        {conversation.type === 'GROUP' ? (
+          <button
+            type="button"
+            className="icon-button"
+            aria-label="View group details"
+            title="Group details"
+            onClick={() => navigate(routes.groupDetails(conversation.id))}
+          >
+            <Icon name="info" />
+          </button>
+        ) : null}
+      </div>
     </header>
   )
 }

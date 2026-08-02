@@ -4,7 +4,7 @@ import { ConversationList } from '@/components/layout/ConversationList'
 
 export function ConversationHubPage() {
   return (
-    <main className="workspace triple">
+    <main className="workspace triple conversation-workspace">
       <ConversationList />
       <Outlet />
     </main>

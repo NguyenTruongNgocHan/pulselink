@@ -11,23 +11,35 @@ interface ConversationListItemProps {
 }
 
 export function ConversationListItem({ conversation }: ConversationListItemProps) {
+  const isOnline =
+    conversation.type === 'DIRECT' &&
+    conversation.participants.some((participant) => participant.isOnline)
+
   return (
     <NavLink
       to={routes.conversation(conversation.id)}
-      className={({ isActive }) => (isActive ? 'conversation-item active' : 'conversation-item')}
+      className={({ isActive }) =>
+        isActive ? 'conversation-item active' : 'conversation-item'
+      }
     >
       <Avatar
         initials={getInitials(conversation.name)}
+        src={conversation.avatarUrl}
+        alt=""
         tone={conversation.type === 'GROUP' ? 'purple' : 'violet'}
-        online={
-          conversation.type === 'DIRECT' &&
-          conversation.participants.some((participant) => participant.isOnline)
-        }
+        online={isOnline}
       />
+
       <span className="conversation-item__copy">
-        <b>{conversation.name}</b>
+        <span className="conversation-item__name">
+          <b>{conversation.name}</b>
+          {conversation.type === 'GROUP' ? (
+            <small className="conversation-item__type">{conversation.memberCount}</small>
+          ) : null}
+        </span>
         <small>{conversation.preview || 'No messages yet'}</small>
       </span>
+
       <span className="conversation-item__meta">
         <time>
           {conversation.latestMessageAt
