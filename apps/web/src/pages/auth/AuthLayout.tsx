@@ -28,9 +28,7 @@ export function AuthLayout({ mode, children }: AuthLayoutProps) {
   return (
     <main className="auth-page">
       <header className="auth-topbar">
-        <Link to={routes.landing} aria-label="PulseLink home">
-          <Brand />
-        </Link>
+        <Brand />
         <ThemeControl compact />
       </header>
 
