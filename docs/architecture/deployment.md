@@ -3,6 +3,20 @@
 Implements ADR-0018. See that ADR for the reasoning; this document is the
 concrete pipeline/topology.
 
+## Current production deployment
+
+- Frontend production: https://pulselink-iota.vercel.app
+- Backend API: https://pulselink-api.onrender.com
+- Backend health check: https://pulselink-api.onrender.com/actuator/health
+- Frontend hosting: Vercel
+- Backend hosting: Render
+- Database: Supabase PostgreSQL
+- Redis: Render Key Value
+
+> The backend runs on a free Render instance. The first request after a period of inactivity may take 30-60 seconds while the service wakes up.
+
+Attachments currently use the local path `/data/uploads`; that is acceptable for the current demo deployment, but it is not persistent production storage without a persistent disk or object storage.
+
 ## Deployment topology
 
 ```mermaid
@@ -12,7 +26,7 @@ flowchart LR
     Actions["GitHub Actions<br/>test + build"]
     Render["Render<br/>apps/api (Docker)"]
     Vercel["Vercel<br/>apps/web (static build)"]
-    Supabase[("Supabase<br/>Postgres + private Storage")]
+    Supabase[("Supabase<br/>PostgreSQL")]
     KeyValue[("Render Key Value<br/>Valkey / Redis-compatible")]
     User(("End user / reviewer<br/>browser"))
 

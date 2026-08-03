@@ -1,12 +1,31 @@
 # PulseLink Documentation — Full System Design (Production Baseline)
 
-**Status: DESIGN COMPLETE.** This edition preserves the original user-application and group-administration design, then integrates the Administration Portal as a first-class system capability rather than an add-on. The documents are the implementation contract; implementation progress is tracked separately.
+**Status: DESIGN COMPLETE.** This edition preserves the original user-application and group-administration design, then integrates the Administration Portal as a first-class system capability rather than an add-on. The documents are the implementation contract; implementation progress is tracked separately in `implementation/implementation-plan.md`.
+
+## Production snapshot
+
+- Frontend: https://pulselink-iota.vercel.app
+- Backend API: https://pulselink-api.onrender.com
+- Health check: https://pulselink-api.onrender.com/actuator/health
+- Frontend hosting: Vercel
+- Backend hosting: Render
+- Database: Supabase PostgreSQL
+- Cache/session store: Render Key Value
+
+> The backend runs on a free Render instance. The first request after a period of inactivity may take 30-60 seconds while the service wakes up.
+
+Current implementation status:
+
+- Phase 0 - Architecture Refactor: complete
+- Phase 1 - Core Application: substantially complete
+- Phase 2 - Production Deployment: complete
+- Remaining work: documented as next improvements, known limitations, future work, and post-deployment hardening
 
 ## Reading order
 
 1. `requirements/product-brief.md`
 2. `requirements/functional-requirements.md` (**56 FRs**) and `non-functional-requirements.md` (**44 NFRs**)
-3. `requirements/traceability-matrix.md`
+3. `requirements/traceability-matrix.csv`
 4. `architecture/system-design.md`, `authorization-model.md`, `moderation-and-administration.md`, `deployment.md`
 5. `database/schema.md` (**16 tables**) and `data-retention.md`
 6. `api/` (**11 references**, including conventions, reports, notifications, and admin)
