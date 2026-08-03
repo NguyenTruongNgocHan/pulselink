@@ -4,18 +4,27 @@ import { beforeEach, describe, expect, it } from 'vitest'
 
 import { useAuthStore } from '../stores/authStore'
 import { App } from './App'
+import { AppProviders } from './providers/AppProviders'
+
+function renderApp(initialRoute: string) {
+  return render(
+    <MemoryRouter initialEntries={[initialRoute]}>
+      <AppProviders>
+        <App />
+      </AppProviders>
+    </MemoryRouter>,
+  )
+}
 
 describe('App routing skeleton', () => {
   beforeEach(() => {
-    useAuthStore.setState({ accessToken: null })
+    useAuthStore.setState({
+      accessToken: null,
+    })
   })
 
   it('renders the login route', () => {
-    render(
-      <MemoryRouter initialEntries={['/login']}>
-        <App />
-      </MemoryRouter>,
-    )
+    renderApp('/login')
 
     expect(
       screen.getByRole('heading', {
@@ -25,11 +34,7 @@ describe('App routing skeleton', () => {
   })
 
   it('redirects anonymous users away from the app shell', () => {
-    render(
-      <MemoryRouter initialEntries={['/app']}>
-        <App />
-      </MemoryRouter>,
-    )
+    renderApp('/app')
 
     expect(
       screen.getByRole('heading', {
