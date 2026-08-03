@@ -138,10 +138,7 @@ export function AppSidebar() {
 
         {accountMenuOpen ? (
           <div className="sidebar-account-menu">
-            <button type="button" onClick={() => navigate(routes.security)}>
-              <Icon name="lock" size={17} />
-              Security &amp; devices
-            </button>
+            
             <button type="button" onClick={() => void signOut()}>
               <Icon name="logout" size={17} />
               Sign out
